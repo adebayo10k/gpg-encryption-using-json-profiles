@@ -65,7 +65,7 @@ else
 fi
 
 # included source files for json profile import functions
-source "${canonical_dirname}/preset-profile-builder.inc.sh"
+source "${canonical_dirname}/gpg-encrypt-profile-build.inc.sh"
 
 
 # THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
