@@ -84,7 +84,7 @@ function main
 	declare -a authorised_host_list=($HOST_0065 $HOST_0054 $HOST_R001 $HOST_R002)  # allow | deny
 	if [[ $(declare -a | grep 'authorised_host_list' 2>/dev/null) ]]
 	then
-		entry_test
+		lib10k_entry_test
 	fi
 
 	no_of_program_parameters=$#
@@ -139,7 +139,7 @@ function main
 	################################################################
 
 	# check program dependencies and requirements
-	check_program_requirements "${program_dependencies[@]}"
+	lib10k_check_program_requirements "${program_dependencies[@]}"
 
 	# verify and validate program positional parameters
 	verify_and_validate_program_arguments
@@ -155,10 +155,10 @@ function main
 	if [ $SHLVL -le 4 ]
 	then
 		# Display a descriptive and informational program header:
-		display_program_header
+		lib10k_display_program_header
 
 		# give user option to leave if here in error:
-		get_user_permission_to_proceed
+		lib10k_get_user_permission_to_proceed
 	fi
 
 
@@ -263,7 +263,7 @@ function verify_program_args
 	for incoming_arg in "${incoming_array[@]}"
 	do
 		echo "incoming argument is now: $incoming_arg"
-		test_file_path_valid_form "$incoming_arg"
+		lib10k_test_file_path_valid_form "$incoming_arg"
 		return_code=$?
 		if [ $return_code -eq 0 ]
 		then
@@ -278,7 +278,7 @@ function verify_program_args
 	# if any of the args is not a readable, regular file, exit program
 	for incoming_arg in "${incoming_array[@]}"
 	do			
-		test_file_path_access "$incoming_arg"
+		lib10k_test_file_path_access "$incoming_arg"
 		return_code=$?
 		if [ $return_code -eq 0 ]
 		then
@@ -295,7 +295,7 @@ function verify_program_args
 		#plaintext_dir_fullpath=${incoming_arg%/*}
 		#plaintext_dir_fullpath=$(echo $plaintext_file_fullpath | sed 's/\/[^\/]*$//') ## also works
 		plaintext_dir_fullpath=$(dirname ${incoming_arg})
-		test_dir_path_access "$plaintext_dir_fullpath"
+		lib10k_test_dir_path_access "$plaintext_dir_fullpath"
 		return_code=$?
 		if [ $return_code -eq 0 ]
 		then
@@ -417,7 +417,7 @@ function verify_file_encryption_results
 
 	
 	# test encrypted file for expected file type (regular) and read permission
-	# TODO: THIS SHOULD BE ONE FOR THE test_file_path_access FUNCTION
+	# TODO: THIS SHOULD BE ONE FOR THE lib10k_test_file_path_access FUNCTION
 	if [ -f "${valid_path}.ENCRYPTED${output_file_extension}" ] \
 	&& [ -r "${valid_path}.ENCRYPTED${output_file_extension}" ]
 	then
