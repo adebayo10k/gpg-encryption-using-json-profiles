@@ -2,10 +2,9 @@
 
 # this function imports the json profile data and then structures
 # it into the specific array profile needed by the main file encrypter functions
-
 function import_file_encryption_configuration () 
 {
-	config_file_fullpath="${HOME}/.config/gpg-encrypt-profiles.json" # a full path to a file
+	config_file_fullpath="${HOME}/.config/config10k/gpg-encrypt-profiles.json" # a full path to a file
 
 	echo "config_file_fullpath set to $config_file_fullpath"
 

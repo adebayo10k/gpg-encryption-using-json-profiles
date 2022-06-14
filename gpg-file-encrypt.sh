@@ -1,105 +1,49 @@
 #!/bin/bash
-#: Title		:file-encrypter.sh
+#: Title		:gpg-file-encrypt.sh
 #: Date			:2019-11-14
 #: Author		:adebayo10k
-#: Version		:1.0
-#: Description	:script provides encryption services both to other scripts  
+#: Version		:
+#: Description	:This script provides encryption services both to other scripts  
 #: Description	:and to the command-line user.  
-#: Description	:to gpg encrypt one or more files passed in as program arguments.
+#: Description	:To gpg encrypt one or more files passed in as program arguments.
 #: Description	:
 #: Description	: 
 #: Description	:
 #: Options		:
 ##
 
-##################################################################
-##################################################################
-# THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
-#===================================
+## THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
 
-# 1. MAKE SHARED LIBRARY FUNCTIONS AVAILABLE HERE
+command_fullpath="$(readlink -f $0)" 
+command_basename="$(basename $command_fullpath)"
+command_dirname="$(dirname $command_fullpath)"
 
-# make all the shared library functions available to this script
-shared_bash_functions_fullpath="${SHARED_LIBRARIES_DIR}/shared-bash-functions.inc.sh"
-shared_bash_constants_fullpath="${SHARED_LIBRARIES_DIR}/shared-bash-constants.inc.sh"
-
-for resource in "$shared_bash_functions_fullpath" "$shared_bash_constants_fullpath"
+for file in "${command_dirname}/includes"/*
 do
-	if [ -f "$resource" ]
-	then
-		echo "Required library resource FOUND OK at:"
-		echo "$resource"
-		source "$resource"
-	else
-		echo "Could not find the required resource at:"
-		echo "$resource"
-		echo "Check that location. Nothing to do now, except exit."
-		exit 1
-	fi
+	source "$file"
 done
 
+## THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
 
-# 2. MAKE SCRIPT-SPECIFIC FUNCTIONS AVAILABLE HERE
-
-# must resolve canonical_fullpath here, in order to be able to include sourced function files BEFORE we call main, and  outside of any other functions defined here, of course.
-
-# at runtime, command_fullpath may be either a symlink file or actual target source file
-command_fullpath="$0"
-command_dirname="$(dirname $0)"
-command_basename="$(basename $0)"
-
-# if a symlink file, then we need a reference to the canonical file name, as that's the location where all our required source files will be.
-# we'll test whether a symlink, then use readlink -f or realpath -e although those commands return canonical file whether symlink or not.
-# 
-canonical_fullpath="$(readlink -f $command_fullpath)"
-canonical_dirname="$(dirname $canonical_fullpath)"
-
-# this is just development debug information
-if [ -h "$command_fullpath" ]
-then
-	echo "is symlink"
-	echo "canonical_fullpath : $canonical_fullpath"
-else
-	echo "is canonical"
-	echo "canonical_fullpath : $canonical_fullpath"
-fi
-
-# included source files for json profile import functions
-source "${canonical_dirname}/gpg-encrypt-profile-build.inc.sh"
-
-
-# THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
-##################################################################
-##################################################################
-
-
-function main
-{	
-	#######################################################################
+function main(){
+	##############################
 	# GLOBAL VARIABLE DECLARATIONS:
-	#######################################################################
-
-	actual_host=$(hostname)
-	unset authorised_host_list
-	declare -a authorised_host_list=($HOST_0065 $HOST_0054 $HOST_R001 $HOST_R002)  # allow | deny
-	if [[ $(declare -a | grep 'authorised_host_list' 2>/dev/null) ]]
-	then
-		lib10k_entry_test
-	fi
-
-	no_of_program_parameters=$#
-	tutti_param_string="$@"
-	#echo $tutti_param_string
-	declare -a incoming_array=()
+	##############################
+	program_title="gpg file encrypter"
+	original_author="damola adebayo"
+	program_dependencies=("jq" "shred" "gpg")
 
 	declare -i max_expected_no_of_program_parameters=0
 	declare -i min_expected_no_of_program_parameters=0
 	declare -ir actual_no_of_program_parameters=$#
 	all_the_parameters_string="$@"
 
-	program_title=""
-	original_author=""
-	program_dependencies=(jq cowsay vi shred gpg)
+	declare -a authorised_host_list=()
+	actual_host=`hostname`
+	no_of_program_parameters=$#
+	tutti_param_string="$@"
+	#echo $tutti_param_string
+	declare -a incoming_array=()
 
 	################################################
 
@@ -132,22 +76,32 @@ function main
 	generic_command=""
 	file_specific_command=""
 
-	##################################################
+	##############################
 
-	################################################################
-	# 'SHOW STOPPER' CHECKING FUNCTION CALLS:	
-	################################################################
+	##############################
+	# FUNCTION CALLS:
+	##############################
+	if [ ! $USER = 'root' ]
+	then
+		## Display a program header
+		lib10k_display_program_header "$program_title" "$original_author"
+		## check program dependencies and requirements
+		lib10k_check_program_requirements "${program_dependencies[@]}"
+	fi
+	
+	# check the number of parameters to this program
+	lib10k_check_no_of_program_args
 
-	# check program dependencies and requirements
-	lib10k_check_program_requirements "${program_dependencies[@]}"
+	# controls where this program can be run, to avoid unforseen behaviour
+	lib10k_entry_test
 
 	# verify and validate program positional parameters
 	verify_and_validate_program_arguments
 
 	
-	###############################################################################################
+	##############################
 	# $SHLVL DEPENDENT FUNCTION CALLS:	
-	###############################################################################################
+	##############################
 
 	# using $SHLVL to show whether this script was called from another script, or from command line
 	echo "OUR CURRENT SHELL LEVEL IS: $SHLVL"
@@ -162,18 +116,18 @@ function main
 	fi
 
 
-	###############################################################################################
+	##############################
 	# FUNCTIONS CALLED ONLY IF THIS PROGRAM USES A CONFIGURATION FILE:	
-	###############################################################################################
+	##############################
 
 	if [ -n "$config_file_fullpath" ]
 	then
 		:
 	fi
 
-	###############################################################################################
+	##############################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
-	###############################################################################################	
+	##############################	
 
 	# IMPORT CONFIGURATION INTO PROGRAM VARIABLES
 	import_file_encryption_configuration
@@ -219,9 +173,9 @@ function main
 } ## end main
 
 
-###############################################################################################
+##############################
 ####  FUNCTION DECLARATIONS  
-###############################################################################################
+##############################
 
 function verify_and_validate_program_arguments()
 {
@@ -243,7 +197,7 @@ function verify_and_validate_program_arguments()
 
 }
 
-################################################################
+############################################
 # program expected one or more absolute paths to plaintext files to be encrypted
 # this was checked at start, and the incoming_array created.
 # this function now does the file path tests on each of them...
@@ -308,8 +262,8 @@ function verify_program_args
 	done
 
 }
-##########################################################################################################
-###########################################################################################################
+##############################
+###############################
 # returns zero if 
 function test_email_valid_form
 {
@@ -336,8 +290,8 @@ function test_email_valid_form
 
 	return "$test_result"
 }
-###############################################################################################
-###############################################################################################
+##############################
+##############################
 # test for removal of plaintext file(s)
 # 
 function verify_file_shred_results
@@ -363,7 +317,7 @@ function verify_file_shred_results
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
 
-###############################################################################################
+##############################
 # standard procedure once encrypted versions exits: remove the plaintext versions!
 function shred_plaintext_files
 {
@@ -389,7 +343,7 @@ function shred_plaintext_files
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
 
-###############################################################################################
+##############################
 # test for encrypted file type
 # test for read access to file 
 # 
@@ -434,7 +388,7 @@ function verify_file_encryption_results
 	return 0
 }
 
-###############################################################################################
+##############################
 # the absolute path to the plaintext file is passed in
 #
 function execute_file_specific_encryption_command
@@ -461,7 +415,7 @@ function execute_file_specific_encryption_command
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
 
-###############################################################################################
+##############################
 # this function called if encryption_system="symmetric"
 function create_generic_symmetric_key_encryption_command_string
 {
@@ -489,7 +443,7 @@ function create_generic_symmetric_key_encryption_command_string
 
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
-###############################################################################################
+##############################
 # this function called if encryption_system="public_key"
 function create_generic_pub_key_encryption_command_string
 {
@@ -528,7 +482,7 @@ function create_generic_pub_key_encryption_command_string
 }
 
 
-###############################################################################################
+##############################
 #
 function get_recipient_uid
 {
@@ -582,7 +536,7 @@ function get_recipient_uid
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
 #
-#################################################################################################
+################################
 ## 
 function get_sender_uid
 {
@@ -616,7 +570,7 @@ function get_sender_uid
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
 #
-###############################################################################################
+##############################
 #
 function set_command_parameters
 {
@@ -663,8 +617,8 @@ function set_command_parameters
 
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
-###############################################################################################
-###############################################################################################
+##############################
+##############################
 # list the keys available on the system
 # get the users' gpg user-id 
 # test that valid, ultimate trust fingerprint exists for that user-id
@@ -698,10 +652,10 @@ function check_gpg_user_keys
 
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
-########################################################################################## 
-###############################################################################################
+################################## 
+##############################
 # CODE TO ENCRYPT A SET OF FILES:
-###############################################################################################
+##############################
 
 function gpg_encrypt_files
 {
@@ -762,8 +716,8 @@ function gpg_encrypt_files
 }
 
 
-###############################################################################################
-###############################################################################################
+##############################
+##############################
 # check that the OpenPGP tool gpg is installed on the system
 #  
 function check_encryption_platform
@@ -786,6 +740,6 @@ function check_encryption_platform
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
 
-#########################################################################################################
+#################################################################
 
 main "$@"; exit
