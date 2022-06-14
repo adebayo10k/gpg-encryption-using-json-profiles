@@ -29,7 +29,7 @@ function import_file_encryption_configuration ()
 	echo && echo
 
 	# put the keys into and indexed array and then loop over it to filter for each profile 
-	# data, one profile at a time
+	# dataset, one profile at a time
 
 	profile_id_array=( $profile_id_string )
 	echo "profile_id_array:"
@@ -59,8 +59,8 @@ function import_file_encryption_configuration ()
 # 
 # store each retrieved profile as structured data in memory.
 # this avoids going back to read from disk.
-# use and indexed array to iterate and assoc array for data var => value
-# need to contrive a primary key across these two arrays
+# use an indexed array to iterate and  an assoc array for data var => value.
+# need to contrive a primary key across these two arrays.
 # indexed array:
 #=========
 # 0	=>	"1^^profile_name"
@@ -161,13 +161,15 @@ function get_user_profile_choice()
     
     # validate user input (TODO: separate these out)
     # 
-    if  [[ "$profile_id_choice" =~ ^[0-9]+$ ]] && [ "$profile_id_choice" -ge 1 ] && [ "$profile_id_choice" -le "${#profile_id_array[@]}"  ]  #
+    if  [[ "$profile_id_choice" =~ ^[0-9]+$ ]] && \
+	[ "$profile_id_choice" -ge 1 ] && \
+	[ "$profile_id_choice" -le "${#profile_id_array[@]}"  ]  #
     then
       return "$profile_id_choice"
     else
       ## exit with error code and message
       msg="The profile id you entered was too bad. Exiting now..."
-	  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
+	  lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
     fi
 	
 }

@@ -23,6 +23,8 @@ do
 	source "$file"
 done
 
+source "${command_dirname}/gpg-encrypt-profile-build.inc.sh"
+
 ## THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
 
 function main(){
@@ -33,7 +35,7 @@ function main(){
 	original_author="damola adebayo"
 	program_dependencies=("jq" "shred" "gpg")
 
-	declare -i max_expected_no_of_program_parameters=0
+	declare -i max_expected_no_of_program_parameters=6
 	declare -i min_expected_no_of_program_parameters=0
 	declare -ir actual_no_of_program_parameters=$#
 	all_the_parameters_string="$@"
@@ -98,33 +100,9 @@ function main(){
 	# verify and validate program positional parameters
 	verify_and_validate_program_arguments
 
+	# give user option to leave if here in error:
+	lib10k_get_user_permission_to_proceed
 	
-	##############################
-	# $SHLVL DEPENDENT FUNCTION CALLS:	
-	##############################
-
-	# using $SHLVL to show whether this script was called from another script, or from command line
-	echo "OUR CURRENT SHELL LEVEL IS: $SHLVL"
-
-	if [ $SHLVL -le 4 ]
-	then
-		# Display a descriptive and informational program header:
-		lib10k_display_program_header
-
-		# give user option to leave if here in error:
-		lib10k_get_user_permission_to_proceed
-	fi
-
-
-	##############################
-	# FUNCTIONS CALLED ONLY IF THIS PROGRAM USES A CONFIGURATION FILE:	
-	##############################
-
-	if [ -n "$config_file_fullpath" ]
-	then
-		:
-	fi
-
 	##############################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################	
@@ -152,16 +130,12 @@ function main(){
 	# CHECK THE STATE OF THE ENCRYPTION ENVIRONMENT:
 	check_encryption_platform
 
-	# issue gpg commands to list keys for now... just to see what's there
-	bash -c "gpg --list-key"
-	bash -c "gpg --list-secret-keys"
-
 	if [ ${#incoming_array[@]} -gt 0 ]
 	then
 		gpg_encrypt_files
 		# result_code=$?
 	else
-		# this will soon be possible!
+		# TODO: this will soon be possible!
 		msg="TRIED TO DO FILE ENCRYPTION WITHOUT ANY INCOMING FILEPATH PARAMETERS. Exiting now..."
 		lib10k_exit_with_error "$E_INCORRECT_NUMBER_OF_ARGS" "$msg"
 	fi
@@ -366,7 +340,7 @@ function verify_file_encryption_results
 		echo "SYMMETRIC KEY ENCRYPTED FILE CREATED SUCCESSFULLY AS:"
 		echo "${valid_path}.ENCRYPTED${output_file_extension}"
 	else
-		return 1 ## unexpected file type ERROR CODE
+		return $E_INCORRECT_FILE_TYPE #		
 	fi
 
 	
@@ -405,7 +379,7 @@ function execute_file_specific_encryption_command
 
 	# get user confirmation before executing file_specific_command
 	# [call a function for this, which can abort the whole encryption process if there's a problem at this point]
-	echo && echo "Command look OK?"
+	echo && echo "Command look OK? Press ENTER to confirm"
 	read	# just pause here for now
 
 	# execute file_specific_command if return code from user confirmation = 0
