@@ -23,7 +23,8 @@ function import_file_encryption_configuration ()
 	# IMPORT PROFILE KEY ATTRIBUTES FROM JSON AS A SINGLE IFS STRING:
 	#=========================================
 
-	profile_id_string=$(cat "$config_file_fullpath" | jq -r '.[] | .profileID') 
+	profile_id_string=$(cat "$config_file_fullpath" | \
+	jq -r '.[] | .profileID') 
 	echo "profile_id_string:"
 	echo -e "$profile_id_string"
 	echo && echo
@@ -82,7 +83,11 @@ function store_profiles()
 	id="${id}"
 	echo -e "unique id to FILTER from JSON: $id"
 
-	profile_name_string=$(cat "$config_file_fullpath" | jq -r --arg profile_id "$id" '.[] | select(.profileID==$profile_id) | .profileName') 
+	profile_name_string=$(cat "$config_file_fullpath" | \
+	jq -r --arg profile_id "$id" '.[] |
+	select(.profileID==$profile_id) |
+	.profileName'
+	) 
 	echo "profile_name_string:"
 	echo -e "$profile_name_string"
 	echo && echo
@@ -93,7 +98,11 @@ function store_profiles()
 
 	###
 
-	profile_description_string=$(cat "$config_file_fullpath" | jq -r --arg profile_id "$id" '.[] | select(.profileID==$profile_id) | .profileDescription') 
+	profile_description_string=$(cat "$config_file_fullpath" | \
+	jq -r --arg profile_id "$id" '.[] |
+	select(.profileID==$profile_id) |
+	.profileDescription'
+	) 
 	echo "profile_description_string:"
 	echo -e "$profile_description_string"
 	echo && echo
@@ -104,7 +113,11 @@ function store_profiles()
 
 	###
 
-	encryption_system_string=$(cat "$config_file_fullpath" | jq -r --arg profile_id "$id" '.[] | select(.profileID==$profile_id) | .encryptionSystem') 
+	encryption_system_string=$(cat "$config_file_fullpath" | \
+	jq -r --arg profile_id "$id" '.[] |
+	select(.profileID==$profile_id) |
+	.encryptionSystem'
+	) 
 	echo "encryption_system_string:"
 	echo -e "$encryption_system_string"
 	echo && echo
@@ -115,7 +128,11 @@ function store_profiles()
 
 	###
 
-	output_file_format_string=$(cat "$config_file_fullpath" | jq -r --arg profile_id "$id" '.[] | select(.profileID==$profile_id) | .outputFileFormat') 
+	output_file_format_string=$(cat "$config_file_fullpath" | \
+	jq -r --arg profile_id "$id" '.[] |
+	select(.profileID==$profile_id) |
+	.outputFileFormat'
+	) 
 	echo "output_file_format_string:"
 	echo -e "$output_file_format_string"
 	echo && echo
@@ -126,7 +143,11 @@ function store_profiles()
 
 	###
 
-	sender_uid_string=$(cat "$config_file_fullpath" | jq -r --arg profile_id "$id" '.[] | select(.profileID==$profile_id) | .senderUID') 
+	sender_uid_string=$(cat "$config_file_fullpath" | \
+	jq -r --arg profile_id "$id" '.[] |
+	select(.profileID==$profile_id) |
+	.senderUID'
+	) 
 	echo "sender_uid_string:"
 	echo -e "$sender_uid_string"
 	echo && echo
@@ -137,7 +158,12 @@ function store_profiles()
 
 	###
 
-	recipient_uid_list_string=$(cat "$config_file_fullpath" | jq -j --arg profile_id "$id" '.[] | select(.profileID==$profile_id) | .recipientUIDList[]' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	recipient_uid_list_string=$(cat "$config_file_fullpath" | \
+	jq -j --arg profile_id "$id" '.[] |
+	select(.profileID==$profile_id) |
+	.recipientUIDList[]' | \
+	sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//" \
+	) 
 	echo "recipient_uid_list_string:"
 	echo -e "$recipient_uid_list_string"
 	echo && echo
