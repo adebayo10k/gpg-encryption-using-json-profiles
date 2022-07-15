@@ -24,7 +24,8 @@ function import_file_encryption_configuration ()
 	#=========================================
 
 	profile_id_string=$(cat "$config_file_fullpath" | \
-	jq -r '.[] | .profileID') 
+	jq -r '.[] | .profileID' \
+	) 
 	echo "profile_id_string:"
 	echo -e "$profile_id_string"
 	echo && echo
@@ -86,7 +87,7 @@ function store_profiles()
 	profile_name_string=$(cat "$config_file_fullpath" | \
 	jq -r --arg profile_id "$id" '.[] |
 	select(.profileID==$profile_id) |
-	.profileName'
+	.profileName' \
 	) 
 	echo "profile_name_string:"
 	echo -e "$profile_name_string"
@@ -101,7 +102,7 @@ function store_profiles()
 	profile_description_string=$(cat "$config_file_fullpath" | \
 	jq -r --arg profile_id "$id" '.[] |
 	select(.profileID==$profile_id) |
-	.profileDescription'
+	.profileDescription' \
 	) 
 	echo "profile_description_string:"
 	echo -e "$profile_description_string"
@@ -116,7 +117,7 @@ function store_profiles()
 	encryption_system_string=$(cat "$config_file_fullpath" | \
 	jq -r --arg profile_id "$id" '.[] |
 	select(.profileID==$profile_id) |
-	.encryptionSystem'
+	.encryptionSystem' \
 	) 
 	echo "encryption_system_string:"
 	echo -e "$encryption_system_string"
@@ -131,7 +132,7 @@ function store_profiles()
 	output_file_format_string=$(cat "$config_file_fullpath" | \
 	jq -r --arg profile_id "$id" '.[] |
 	select(.profileID==$profile_id) |
-	.outputFileFormat'
+	.outputFileFormat' \
 	) 
 	echo "output_file_format_string:"
 	echo -e "$output_file_format_string"
@@ -146,7 +147,7 @@ function store_profiles()
 	sender_uid_string=$(cat "$config_file_fullpath" | \
 	jq -r --arg profile_id "$id" '.[] |
 	select(.profileID==$profile_id) |
-	.senderUID'
+	.senderUID' \
 	) 
 	echo "sender_uid_string:"
 	echo -e "$sender_uid_string"
@@ -189,7 +190,7 @@ function get_user_profile_choice()
     # 
     if  [[ "$profile_id_choice" =~ ^[0-9]+$ ]] && \
 	[ "$profile_id_choice" -ge 1 ] && \
-	[ "$profile_id_choice" -le "${#profile_id_array[@]}"  ]  #
+	[ "$profile_id_choice" -le "${#profile_id_array[@]}"  ]
     then
       return "$profile_id_choice"
     else

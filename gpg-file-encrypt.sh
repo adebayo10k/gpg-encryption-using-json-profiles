@@ -608,7 +608,7 @@ function check_gpg_user_keys
 
 	# get the users' gpg UID from terminal
 	echo "To make sure you have keys here with which to ENCRYPT, we'll just look for a FINGERPRINT for your USER-ID" && echo
-	echo "Enter your user-id (example: order@entropism.org)"
+	echo "Enter your user-id (example: you@your-domain.org)"
 
 	read userid && echo
 
@@ -704,7 +704,7 @@ function check_encryption_platform
 		echo "OpenPGP PROGRAM INSTALLED ON THIS SYSTEM OK"
 		# issue gpg commands to list keys for now... just to see what's there
 		bash -c "gpg --list-key"
-		bash -c "gpg --list-secret-keys"
+		#bash -c "gpg --list-secret-keys"
 	else
 		# -> exit due to failure of any of the above tests:
 		msg="FAILED TO FIND THE REQUIRED OpenPGP PROGRAM. Exiting now..."
