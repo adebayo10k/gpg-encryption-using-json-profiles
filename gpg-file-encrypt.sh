@@ -101,7 +101,7 @@ function main(){
 	verify_and_validate_program_arguments
 
 	# give user option to leave if here in error:
-	lib10k_get_user_permission_to_proceed
+	lib10k_get_user_permission_to_proceed; [ $? -eq 0 ] || exit 0;
 	
 	##############################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
