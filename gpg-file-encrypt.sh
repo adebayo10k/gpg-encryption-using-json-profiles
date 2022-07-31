@@ -12,18 +12,54 @@
 #: Options		:
 ##
 
+
 ## THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
 
 command_fullpath="$(readlink -f $0)" 
 command_basename="$(basename $command_fullpath)"
 command_dirname="$(dirname $command_fullpath)"
 
-for file in "${command_dirname}/shared-functions-library"/shared-bash-*
-do
-	source "$file"
-done
+# verify existence of library dependencies
+# when this project is a submodule, its' library submodule in NOT added \
+# so it uses that of the main project.
+if [ -d "${command_dirname}/shared-functions-library" ] && \
+[ -n "$(ls ${command_dirname}/shared-functions-library | grep  'shared-bash-')" ]
+then
+	for file in "${command_dirname}/shared-functions-library"/shared-bash-*
+	do
+		source "$file"
+	done
+elif [ -d "${command_dirname}/../shared-functions-library" ] && \
+[ -n "$(ls ${command_dirname}/../shared-functions-library | grep  'shared-bash-')" ]
+then
+    for file in "${command_dirname}/../shared-functions-library"/shared-bash-*
+	do
+		source "$file"
+	done
+else
+	# return a non-zero exit code with native exit
+	echo "Required file not found. Returning non-zero exit code. Exiting now..."
+	exit 1
+fi
 
-source "${command_dirname}/gpg-encrypt-profile-build.inc.sh"
+### Library functions have now been read-in ###
+
+# verify existence of included dependencies
+if [ -d "${command_dirname}/includes" ] && \
+[ -n "$(ls ${command_dirname}/includes)" ]
+then
+	for file in "${command_dirname}/includes"/*
+	do
+		source "$file"
+	done
+else
+	msg="Required file not found. Returning non-zero exit code. Exiting now..."
+	lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
+fi
+
+### Included file functions have now been read-in ###
+
+#source "${command_dirname}/gpg-encrypt-profile-build.inc.sh"
 
 ## THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
 
