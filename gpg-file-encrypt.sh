@@ -6,22 +6,14 @@
 #: Description	:This script provides encryption services both to other scripts  
 #: Description	:and to the command-line user.  
 #: Description	:To gpg encrypt one or more files passed in as program arguments.
-#: Description	:
-#: Description	: 
-#: Description	:
-#: Options		:
-##
-
-
-## THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
 
 command_fullpath="$(readlink -f $0)" 
 command_basename="$(basename $command_fullpath)"
 command_dirname="$(dirname $command_fullpath)"
 
-# verify existence of library dependencies
-# when this project is a submodule, its' library submodule in NOT added \
-# so it uses that of the main project.
+# verify existence of library dependencies...
+# where this project is a submodule, contents of its' library submodule directory \
+# are NOT populated, so it uses those of the main project.
 if [ -d "${command_dirname}/shared-functions-library" ] && \
 [ -n "$(ls ${command_dirname}/shared-functions-library | grep  'shared-bash-')" ]
 then
@@ -59,31 +51,16 @@ fi
 
 ### Included file functions have now been read-in ###
 
-#source "${command_dirname}/gpg-encrypt-profile-build.inc.sh"
+# CALLS TO FUNCTIONS DECLARED IN helper.inc.sh
+#==========================
+check_all_program_preconditions
 
-## THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
+exit 0 #debug
 
 function main(){
 	##############################
 	# GLOBAL VARIABLE DECLARATIONS:
 	##############################
-	program_title="gpg file encrypter"
-	original_author="damola adebayo"
-	program_dependencies=("jq" "shred" "gpg")
-
-	declare -i max_expected_no_of_program_parameters=6
-	declare -i min_expected_no_of_program_parameters=0
-	declare -ir actual_no_of_program_parameters=$#
-	all_the_parameters_string="$@"
-
-	declare -a authorised_host_list=()
-	actual_host=`hostname`
-	no_of_program_parameters=$#
-	tutti_param_string="$@"
-	#echo $tutti_param_string
-	declare -a incoming_array=()
-
-	################################################
 
 	declare -a profile_keys_indexed_array=()
 	declare -A profile_key_value_assoc_array=()
@@ -119,26 +96,7 @@ function main(){
 	##############################
 	# FUNCTION CALLS:
 	##############################
-	if [ ! $USER = 'root' ]
-	then
-		## Display a program header
-		lib10k_display_program_header "$program_title" "$original_author"
-		## check program dependencies and requirements
-		lib10k_check_program_requirements "${program_dependencies[@]}"
-	fi
-	
-	# check the number of parameters to this program
-	lib10k_check_no_of_program_args
 
-	# controls where this program can be run, to avoid unforseen behaviour
-	lib10k_entry_test
-
-	# verify and validate program positional parameters
-	verify_and_validate_program_arguments
-
-	# give user option to leave if here in error:
-	lib10k_get_user_permission_to_proceed; [ $? -eq 0 ] || exit 0;
-	
 	##############################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################	
@@ -166,13 +124,13 @@ function main(){
 	# CHECK THE STATE OF THE ENCRYPTION ENVIRONMENT:
 	check_encryption_platform
 
-	if [ ${#incoming_array[@]} -gt 0 ]
+	if [ ${#validated_array[@]} -gt 0 ]
 	then
 		gpg_encrypt_files
 		# result_code=$?
 	else
 		# TODO: this will soon be possible!
-		msg="TRIED TO DO FILE ENCRYPTION WITHOUT ANY INCOMING FILEPATH PARAMETERS. Exiting now..."
+		msg="TRIED TO DO FILE ENCRYPTION WITHOUT ANY VALID FILEPATH PARAMETERS. Exiting now..."
 		lib10k_exit_with_error "$E_INCORRECT_NUMBER_OF_ARGS" "$msg"
 	fi
 	
@@ -187,91 +145,6 @@ function main(){
 ####  FUNCTION DECLARATIONS  
 ##############################
 
-function verify_and_validate_program_arguments()
-{
-#
-	# 1. VALIDATE ANY ARGUMENTS HAVE BEEN PASSED INTO THIS SCRIPT
-	echo "Number of arguments passed in = $no_of_program_parameters"
-
-	# if one or more args put them into an array 
-	if [ $no_of_program_parameters -gt 0 ]
-	then
-		#echo "IFS: -$IFS+"
-		incoming_array=( $tutti_param_string )
-		echo "incoming_array[@]: ${incoming_array[@]}"
-		verify_program_args
-	else
-		msg="Incorrect number of command line arguments. Exiting now..."
-		lib10k_exit_with_error "$E_INCORRECT_NUMBER_OF_ARGS" "$msg"
-	fi
-
-}
-
-############################################
-# program expected one or more absolute paths to plaintext files to be encrypted
-# this was checked at start, and the incoming_array created.
-# this function now does the file path tests on each of them...
-function verify_program_args
-{
-	# 2. VERIFY THAT ALL INCOMING ARGS ARE VALID AND ACCESSIBLE FILE PATHS 
-
-	# give user the opportunity to confirm argument values?
-	# get rid of this if feels like overkill
-	echo "incoming_array is of size: ${#incoming_array[@]}" && echo
-	for incoming_arg in "${incoming_array[@]}"
-	do
-		echo "$incoming_arg" && echo
-	done
-	
-	# if any of the args is not in the form of an absolute file path, exit program.
-	for incoming_arg in "${incoming_array[@]}"
-	do
-		echo "incoming argument is now: $incoming_arg"
-		lib10k_test_file_path_valid_form "$incoming_arg"
-		return_code=$?
-		if [ $return_code -eq 0 ]
-		then
-			echo $incoming_arg
-			echo "VALID FORM TEST PASSED" && echo
-		else
-			msg="The valid form test FAILED and returned: $return_code. Exiting now..."
-			lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
-		fi
-	done
-	
-	# if any of the args is not a readable, regular file, exit program
-	for incoming_arg in "${incoming_array[@]}"
-	do			
-		lib10k_test_file_path_access "$incoming_arg"
-		return_code=$?
-		if [ $return_code -eq 0 ]
-		then
-			echo "The full path to the plaintext file is: $incoming_arg"
-			echo "REGULAR FILE READ TEST PASSED" && echo
-		else
-			msg="The file path access test FAILED and returned: $return_code. Exiting now..."
-			lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
-		fi
-	done
-	
-	for incoming_arg in "${incoming_array[@]}"
-	do
-		#plaintext_dir_fullpath=${incoming_arg%/*}
-		#plaintext_dir_fullpath=$(echo $plaintext_file_fullpath | sed 's/\/[^\/]*$//') ## also works
-		plaintext_dir_fullpath=$(dirname ${incoming_arg})
-		lib10k_test_dir_path_access "$plaintext_dir_fullpath"
-		return_code=$?
-		if [ $return_code -eq 0 ]
-		then
-			echo "The full path to the plaintext file holding directory is: $plaintext_dir_fullpath"
-			echo "HOLDING DIRECTORY ACCESS READ TEST PASSED" && echo
-		else
-			msg="The directory path access test FAILED and returned: $return_code. Exiting now..."
-			lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
-		fi
-	done
-
-}
 ##############################
 ###############################
 # returns zero if 
@@ -286,7 +159,7 @@ function test_email_valid_form
 
 	if [[ $test_email =~ $EMAIL_REGEX ]]
 	then
-		echo "THE FORM OF THE INCOMING PARAMETER IS OF A VALID EMAIL ADDRESS"
+		echo "THE FORM OF THE VALID PARAMETER IS OF A VALID EMAIL ADDRESS"
 		test_result=0
 	else
 		echo "PARAMETER WAS NOT A MATCH FOR OUR KNOWN EMAIL FORM REGEX: "$EMAIL_REGEX"" && sleep 1 && echo
@@ -309,7 +182,7 @@ function verify_file_shred_results
 	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
 
 	# :
-	for valid_path in "${incoming_array[@]}"
+	for valid_path in "${validated_array[@]}"
 	do
 		if [ -f "${valid_path}" ]
 		then
@@ -336,7 +209,7 @@ function shred_plaintext_files
 	echo "OK TO SHRED THE FOLLOWING PLAINTEXT FILE(S)?..." && echo
 
 	# list the encrypted files:
-	for valid_path in "${incoming_array[@]}"
+	for valid_path in "${validated_array[@]}"
 	do
 		echo "${valid_path}"	
 	done
@@ -345,7 +218,7 @@ function shred_plaintext_files
 	read
 
 	# shred the plaintext file and verify its' removal
-	for valid_path in "${incoming_array[@]}"
+	for valid_path in "${validated_array[@]}"
 	do
 		shred -n 1 -ufv "${valid_path}"	
 	done
@@ -691,7 +564,7 @@ function gpg_encrypt_files
 	set_command_parameters
 
 	#create, then execute each file specific encryption command, then shred plaintext file:
-	for valid_path in "${incoming_array[@]}"
+	for valid_path in "${validated_array[@]}"
 	do
 		echo "about to execute on file: $valid_path"
 		execute_file_specific_encryption_command "$valid_path" #

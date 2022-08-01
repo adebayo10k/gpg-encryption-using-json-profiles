@@ -16,8 +16,8 @@ function import_file_encryption_configuration ()
 
 	# values that are returned by jq as 'concatenated strings to be arrayed' get an IFS.
 	# single string values don't. 
-	 # conveniently, the same sed command is applied to both (all) cases though!
-	# therefore, for consistent handling, everything was single-quoted.
+	# conveniently, the same sed command is applied to both (all) cases though!
+	# therefore, for consistent handling, everything is single-quoted.
 
 	
 	# IMPORT PROFILE KEY ATTRIBUTES FROM JSON AS A SINGLE IFS STRING:
@@ -30,8 +30,8 @@ function import_file_encryption_configuration ()
 	echo -e "$profile_id_string"
 	echo && echo
 
-	# put the keys into and indexed array and then loop over it to filter for each profile 
-	# dataset, one profile at a time
+	# we'll put these keys into and indexed array, then loop over \
+    # it to filter for each profile.
 
 	profile_id_array=( $profile_id_string )
 	echo "profile_id_array:"
