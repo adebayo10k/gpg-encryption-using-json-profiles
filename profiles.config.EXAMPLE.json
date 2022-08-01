@@ -2,7 +2,7 @@
 	{
 		"profileID": "0001",
 		"profileName": "local admin",
-		"profileDescription": "gpg profile to public key encrypt local files",
+		"profileDescription": "profile to PK encrypt my sensitive local documents",
 		"encryptionSystem": "public_key",
 		"outputFileFormat": "ascii",
 		"senderUID": "me@host1.org",
@@ -14,10 +14,10 @@
 	{
 		"profileID": "0002",
 		"profileName": "cloud partners",
-		"profileDescription": "gpg profile to public key encrypt cloud business comms",
+		"profileDescription": "encrypt my cloud business email comms",
 		"encryptionSystem": "public_key",
 		"outputFileFormat": "binary",
-		"senderUID": "me@host1.org",
+		"senderUID": "me@domain.com",
 		"recipientUIDList": [
 			"'other.dev@domain.com'",
 			"'cloud.dev@domain.co.uk'",
@@ -27,14 +27,14 @@
 	},
 	{
 		"profileID": "0003",
-		"profileName": "symmetric key test",
-		"profileDescription": "gpg profile to symmetric key encrypt",
+		"profileName": "email symmetric key test",
+		"profileDescription": "profile to symmetric key encrypt family business email",
 		"encryptionSystem": "symmetric_key",
 		"outputFileFormat": "ascii",
-		"senderUID": "me@host1.org",
+		"senderUID": "me@business.org",
 		"recipientUIDList": [
-			"'me@host1.org'",
-			"'me@host3.org'"
+			"'one@business.org'",
+			"'two@business.org'"
 		]
 	}
 ]
