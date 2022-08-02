@@ -31,10 +31,7 @@
 		"profileDescription": "profile to symmetric key encrypt family business email",
 		"encryptionSystem": "symmetric_key",
 		"outputFileFormat": "ascii",
-		"senderUID": "me@business.org",
-		"recipientUIDList": [
-			"'one@business.org'",
-			"'two@business.org'"
-		]
+		"senderUID": "",
+		"recipientUIDList": []
 	}
 ]
