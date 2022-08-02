@@ -3,7 +3,7 @@
 #: Date			:2019-11-14
 #: Author		:adebayo10k
 #: Version		:
-#: Description	:This script provides encryption services both to other scripts  
+#: Description	:This script provides file encryption both to other scripts  
 #: Description	:and to the command-line user.  
 #: Description	:To gpg encrypt one or more files passed in as program arguments.
 
@@ -51,19 +51,16 @@ fi
 
 ### Included file functions have now been read-in ###
 
-# CALLS TO FUNCTIONS DECLARED IN helper.inc.sh
+# CALLS TO FUNCTIONS DECLARED IN includes/helper.inc.sh
 #==========================
 check_all_program_preconditions
 
-exit 0 #debug
+#exit 0 #debug
 
 function main(){
 	##############################
 	# GLOBAL VARIABLE DECLARATIONS:
 	##############################
-
-	declare -a profile_keys_indexed_array=()
-	declare -A profile_key_value_assoc_array=()
 
 	# independent variables
 	encryption_system= # public_key | symmetric_key
@@ -101,6 +98,8 @@ function main(){
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################	
 
+    # CALLS TO FUNCTIONS DECLARED IN includes/gpg-encrypt-profile-build.inc.sh
+    #==========================
 	# IMPORT CONFIGURATION INTO PROGRAM VARIABLES
 	import_file_encryption_configuration
 
@@ -121,6 +120,8 @@ function main(){
 	echo "${#recipient_uid_list[@]}"
 	echo && echo
 	
+    exit 0 #debug
+
 	# CHECK THE STATE OF THE ENCRYPTION ENVIRONMENT:
 	check_encryption_platform
 
