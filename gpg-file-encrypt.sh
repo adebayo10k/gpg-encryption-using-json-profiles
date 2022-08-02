@@ -55,185 +55,275 @@ fi
 #==========================
 check_all_program_preconditions
 
-#exit 0 #debug
-
-function main(){
+function main() {
 	##############################
 	# GLOBAL VARIABLE DECLARATIONS:
 	##############################
-
-	# independent variables
-	encryption_system= # public_key | symmetric_key
-	output_file_format= # ascii | binary
-	profile_name=
-	profile_description=
-
-	# dependent variables
 	encryption_system_option= # --encrypt | --symmetric
 	output_file_extension= # .asc | .gpg
-
 	armor_option='--armor'
 	sender_option='--local-user'
-	recipient_option='--recipient'
-	sender_uid=""
-	#recipient_uid=""
-	declare -a recipient_uid_list=()
-
-	################################################
-
+	recipient_option='--recipient'	
 	gpg_command='gpg'
 	output_option='--output'
 	file_path_placeholder='<filepath_placeholder>'
-
-	generic_command=""
-	file_specific_command=""
-
-	##############################
+	generic_command=
+	file_specific_command=
 
 	##############################
 	# FUNCTION CALLS:
 	##############################
 
-	##############################
-	# PROGRAM-SPECIFIC FUNCTION CALLS:	
-	##############################	
-
     # CALLS TO FUNCTIONS DECLARED IN includes/gpg-encrypt-profile-build.inc.sh
     #==========================
-	# IMPORT CONFIGURATION INTO PROGRAM VARIABLES
 	import_file_encryption_configuration
 
+    # debug output:
 	echo "profile_name: $profile_name"
-	echo && echo
 	echo "profile_description: $profile_description"
-	echo && echo
 	echo "output_file_format: $output_file_format"
-	echo && echo
 	echo "encryption_system: $encryption_system"
-	echo && echo
 	echo "sender_uid: $sender_uid"
-	echo && echo
-	echo "recipient_uid_list:"	
-	echo "${recipient_uid_list[@]}"
-	echo && echo
-	echo "recipient_uid_list size:"
-	echo "${#recipient_uid_list[@]}"
-	echo && echo
+	echo "recipient_uid_list: $recipient_uid_list" # an IFS | separated string
+    #echo "recipient_uid_list: ${recipient_uid_list[@]}"	
+	#echo "recipient_uid_list size: ${#recipient_uid_list[@]}"
+	echo 
 	
+    
+    validate_output_format "$output_file_format"    
+    validate_encryption_system "$encryption_system"    
+    test_uid_keys "$sender_uid" "$recipient_uid_list"
     exit 0 #debug
 
-	# CHECK THE STATE OF THE ENCRYPTION ENVIRONMENT:
-	check_encryption_platform
+	create_generic_command_string
 
-	if [ ${#validated_array[@]} -gt 0 ]
-	then
-		gpg_encrypt_files
-		# result_code=$?
-	else
-		# TODO: this will soon be possible!
-		msg="TRIED TO DO FILE ENCRYPTION WITHOUT ANY VALID FILEPATH PARAMETERS. Exiting now..."
-		lib10k_exit_with_error "$E_INCORRECT_NUMBER_OF_ARGS" "$msg"
-	fi
-	
-	
-	# 7. ON RETURN OF CONTROL, CHECK FOR DESIRED POSTCONDITIONS
-	echo "file-encrypter exit code: $?" 
+    # encrypt 
 
+    # verify encrypt
+
+    # shred
+
+    # verify shred
+	
 } ## end main
 
 
 ##############################
 ####  FUNCTION DECLARATIONS  
 ##############################
+function validate_output_format() {
+    local output_file_format="$1"
+    [ "$output_file_format" == 'ascii' ] || [ "$output_file_format" == 'binary' ] || usage
+}
 
 ##############################
-###############################
-# returns zero if 
-function test_email_valid_form
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
+# test validity of values for encryption_system and output_file_format || exit
+function validate_encryption_system() {
+    local encryption_system="$1"
+    [ "$encryption_system" == 'public_key' ] || [ "$encryption_system" == 'symmetric_key' ] || usage
+}
 
-	test_result=
-	test_email=$1
-	
-	echo "test_email is set to: $test_email"
+##############################
+# # test uids against gpg keyring.
+function test_uid_keys() {
+	local sender_uid="$1"    
+    local recipient_uid_list="$2"
+        
+    # no keys or uids needed for symmetric key encryption.
+    [ "$encryption_system" == 'symmetric_key' ] && return 0
 
-	if [[ $test_email =~ $EMAIL_REGEX ]]
+    # test sender uid
+	if (gpg --fingerprint "$sender_uid" >/dev/null 2>&1) && \
+    (gpg --list-key "$sender_uid" >/dev/null 2>&1) && \
+    (gpg --list-secret-keys "$sender_uid" >/dev/null 2>&1)
+    then
+        echo -e "Keypair identified for sender $sender_uid OK"
+    else
+        msg="Failed to identify a Keypair for sender $sender_uid. Exiting now..."
+		lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
+    fi
+
+    # test recipient uids
+    OIFS=$IFS; IFS='|'
+    for uid in $recipient_uid_list
+    do
+        if (gpg --fingerprint "$uid" >/dev/null 2>&1) && \
+        (gpg --list-key "$uid" >/dev/null 2>&1)
+        then
+            echo -e "Keypair identified for recipient $uid OK"
+        else
+            msg="Failed to identify a Keypair for recipient $uid. Exiting now..."
+		    lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
+        fi
+    done
+    IFS=$OIFS
+}
+
+##############################
+function create_generic_command_string() {
+
+
+	if [ $output_file_format == 'ascii' ]
 	then
-		echo "THE FORM OF THE VALID PARAMETER IS OF A VALID EMAIL ADDRESS"
-		test_result=0
+		output_file_extension=".asc" #default
+	elif [ $output_file_format == 'binary' ]
+	then
+		output_file_extension='.gpg'
 	else
-		echo "PARAMETER WAS NOT A MATCH FOR OUR KNOWN EMAIL FORM REGEX: "$EMAIL_REGEX"" && sleep 1 && echo
-		echo "Returning with a non-zero test result..."
-		test_result=1
-		return $E_UNEXPECTED_ARG_VALUE
-	fi 
+		msg="Fail. Exiting now..."
+		lib10k_exit_with_error "$E_OUT_OF_BOUNDS_BRANCH_ENTERED" "$msg"
+	fi	
 
 
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 
-	return "$test_result"
+
+	if [ $encryption_system == 'public_key' ]
+	then
+		echo "encrytion_system is set to public-key"
+		encryption_system_option='--encrypt'
+
+		create_generic_pub_key_encryption_command_string
+
+	elif [ $encryption_system == 'symmetric_key' ]
+	then
+		echo "encrytion_system is set to symmetric-key"
+		encryption_system_option='--symmetric'
+
+		create_generic_symmetric_key_encryption_command_string
+
+	else
+		msg="FAIL. Exiting now..."
+		lib10k_exit_with_error "$E_OUT_OF_BOUNDS_BRANCH_ENTERED" "$msg"
+	fi
+
 }
-##############################
-##############################
-# test for removal of plaintext file(s)
-# 
-function verify_file_shred_results
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
 
-	# :
-	for valid_path in "${validated_array[@]}"
+
+
+##############################
+# this function called if encryption_system="public_key"
+function create_generic_pub_key_encryption_command_string() {
+
+	# THIS IS THE FORM:
+	# $ gpg --armor --output "$plaintext_file_fullpath.ENCRYPTED.asc" \
+	# --local-user <uid> --recipient <uid> --encrypt "$plaintext_file_fullpath"
+
+	generic_command=
+
+	generic_command+="${gpg_command} "
+
+	if [ $output_file_format == 'ascii' ]
+	then
+		generic_command+="${armor_option} "
+		generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
+		generic_command+="${output_file_extension} "
+	fi
+
+	generic_command+="${sender_option} "
+	generic_command+="${sender_uid} "
+
+	for recipient in ${recipient_uid_list[@]}
 	do
-		if [ -f "${valid_path}" ]
+		generic_command+="${recipient_option} ${recipient} "
+	done
+
+	generic_command+="${encryption_system_option} ${file_path_placeholder}"
+
+	echo "$generic_command"
+
+}
+
+
+##############################
+# this function called if encryption_system="symmetric"
+function create_generic_symmetric_key_encryption_command_string() {
+
+	# COMMAND FORM:
+	# $ gpg --armor --output "$plaintext_file_fullpath.ENCRYPTED.asc" --symmetric "$plaintext_file_fullpath"
+
+	generic_command=
+
+	generic_command+="${gpg_command} "
+
+	if [ $output_file_format == 'ascii' ]
+	then
+		generic_command+="${armor_option} "
+		generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
+		generic_command+="${output_file_extension} "
+	fi
+
+	generic_command+="${encryption_system_option} ${file_path_placeholder}"
+
+	echo "$generic_command"
+
+}
+
+
+##############################
+function gpg_encrypt_files() {
+
+	# sets the generic_command global
+	# create a generic file encryption command string for either public key or symmetric key encryption:
+
+
+	#create, then execute each file specific encryption command, then shred plaintext file:
+	for valid_path in "${validated_files_array[@]}"
+	do
+		echo "about to execute on file: $valid_path"
+		execute_file_specific_encryption_command "$valid_path" #
+
+		# check that expected output file now exists, is accessible and has expected encypted file properties
+		verify_file_encryption_results "${valid_path}"
+		encrypt_result=$?
+		if [ $encrypt_result -eq 0 ]
 		then
-			# failure of shred
-			echo "FAILED TO CONFIRM THE SHRED REMOVAL OF FILE:"
-			echo "${valid_path}" && echo
+			echo && echo "SUCCESSFUL VERIFICATON OF ENCRYPTION. encrypt_result: $encrypt_result"
 		else
-			# success of shred
-			echo "SUCCESSFUL SHRED REMOVAL OF FILE:"
-			echo "${valid_path}" && echo
-
-		fi
+			msg="FAILURE REPORT. Unexpected encrypt_result: $encrypt_result. Exiting now..."
+			lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
+		fi	
 	done
 
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
+	# 6. SHRED THE PLAINTEXT FILES, NOW THAT ENCRYPTED VERSION HAVE BEEN MADE
+
+    shred_plaintext_files
+	verify_file_shred_results
+
+	#return $encrypt_result # resulting from the last successful encryption only! So what use is that?
+
 }
 
 ##############################
-# standard procedure once encrypted versions exits: remove the plaintext versions!
-function shred_plaintext_files
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
+# the absolute path to the plaintext file is passed in
+#
+function execute_file_specific_encryption_command() {
 
-	echo "OK TO SHRED THE FOLLOWING PLAINTEXT FILE(S)?..." && echo
+	valid_path="$1"
 
-	# list the encrypted files:
-	for valid_path in "${validated_array[@]}"
-	do
-		echo "${valid_path}"	
-	done
+	# using [,] delimiter to avoid interference with file path [/]
+	file_specific_command=$(echo "$generic_command" | sed 's,'$file_path_placeholder','$valid_path',' \
+	| sed 's,'$file_path_placeholder','$valid_path',')
 
-	# for now, confirmation by pressing enter
-	read
+	echo "$file_specific_command"
 
-	# shred the plaintext file and verify its' removal
-	for valid_path in "${validated_array[@]}"
-	do
-		shred -n 1 -ufv "${valid_path}"	
-	done
+	# get user confirmation before executing file_specific_command
+	# [call a function for this, which can abort the whole encryption process if there's a problem at this point]
+	echo && echo "Command look OK? Press ENTER to confirm"
+	read	# just pause here for now
 
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
+	# execute file_specific_command if return code from user confirmation = 0
+	# execute [here] using bash -c ...
+	bash -c "$file_specific_command"
+
 }
+
+
 
 ##############################
 # test for encrypted file type
 # test for read access to file 
 # 
-function verify_file_encryption_results
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
+function verify_file_encryption_results() {
 
 	valid_path="$1"
 
@@ -267,363 +357,61 @@ function verify_file_encryption_results
 		return $E_REQUIRED_FILE_NOT_FOUND
 	fi
 
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 
 	return 0
 }
 
-##############################
-# the absolute path to the plaintext file is passed in
-#
-function execute_file_specific_encryption_command
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
-
-	valid_path="$1"
-
-	# using [,] delimiter to avoid interference with file path [/]
-	file_specific_command=$(echo "$generic_command" | sed 's,'$file_path_placeholder','$valid_path',' \
-	| sed 's,'$file_path_placeholder','$valid_path',')
-
-	echo "$file_specific_command"
-
-	# get user confirmation before executing file_specific_command
-	# [call a function for this, which can abort the whole encryption process if there's a problem at this point]
-	echo && echo "Command look OK? Press ENTER to confirm"
-	read	# just pause here for now
-
-	# execute file_specific_command if return code from user confirmation = 0
-	# execute [here] using bash -c ...
-	bash -c "$file_specific_command"
-
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
-}
 
 ##############################
-# this function called if encryption_system="symmetric"
-function create_generic_symmetric_key_encryption_command_string
-{
+# standard procedure once encrypted versions exits: remove the plaintext versions!
+function shred_plaintext_files() {
 	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
 
-	echo "OK, WE'RE HERE, READY TO BUILD THAT COMMAND STRING"
+	echo "OK TO SHRED THE FOLLOWING PLAINTEXT FILE(S)?..." && echo
 
-	# COMMAND FORM:
-	# $ gpg --armor --output "$plaintext_file_fullpath.ENCRYPTED.asc" --symmetric "$plaintext_file_fullpath"
-
-	generic_command=
-
-	generic_command+="${gpg_command} "
-
-	if [ $output_file_format == "ascii" ]
-	then
-		generic_command+="${armor_option} "
-		generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
-		generic_command+="${output_file_extension} "
-	fi
-
-	generic_command+="${encryption_system_option} ${file_path_placeholder}"
-
-	echo "$generic_command"
-
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
-}
-##############################
-# this function called if encryption_system="public_key"
-function create_generic_pub_key_encryption_command_string
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
-
-	echo "OK, WE'RE HERE, READY TO BUILD THAT GENERIC COMMAND STRING"
-
-	# THIS IS THE FORM:
-	# $ gpg --armor --output "$plaintext_file_fullpath.ENCRYPTED.asc" \
-	# --local-user <uid> --recipient <uid> --encrypt "$plaintext_file_fullpath"
-
-	generic_command=
-
-	generic_command+="${gpg_command} "
-
-	if [ $output_file_format == "ascii" ]
-	then
-		generic_command+="${armor_option} "
-		generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
-		generic_command+="${output_file_extension} "
-	fi
-
-	generic_command+="${sender_option} "
-	generic_command+="${sender_uid} "
-
-	for recipient in ${recipient_uid_list[@]}
+	# list the encrypted files:
+	for valid_path in "${validated_files_array[@]}"
 	do
-		generic_command+="${recipient_option} ${recipient} "
+		echo "${valid_path}"	
 	done
 
-	generic_command+="${encryption_system_option} ${file_path_placeholder}"
+	# for now, confirmation by pressing enter
+	read
 
-	echo "$generic_command"
+	# shred the plaintext file and verify its' removal
+	for valid_path in "${validated_files_array[@]}"
+	do
+		shred -n 1 -ufv "${valid_path}"	
+	done
 
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
 
-
 ##############################
-#
-function get_recipient_uid
-{
+# test for removal of plaintext file(s)
+# 
+function verify_file_shred_results() {
 	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
 
-	while true
+	# :
+	for valid_path in "${validated_files_array[@]}"
 	do
-
-		uid=""
-
-		echo "Enter the user-id of a RECIPIENT: or if really none, enter NONE"
-		read uid
-
-		if [ "$uid" = "NONE" ]; then break; fi
-
-		# TODO: later, also validate against known public keys in keyring
-		# test uid for valid email form
-		test_email_valid_form "$uid"
-		if [ $? -eq 0 ]
+		if [ -f "${valid_path}" ]
 		then
-			echo && echo "EMAIL ADDRESS \"$uid\" IS VALID"
-
-			recipient_uid="$uid"
-			echo "One recipients user-id is now set to the value: $recipient_uid" && echo
-			recipient_uid_list+=( "${recipient_uid}" )
-			
-			echo "Any more recipients (whose public keys we hold) [y/n]?"
-			read more_recipients_answer
-
-			case $more_recipients_answer in
-			[yY])	echo "OK, another recipient requested...." && echo
-					continue
-					;;
-			[nN])	echo "OK, no more recipients needed...." && echo
-					break
-					;;
-			*)		echo "UNKNOWN RESPONSE...." && echo && sleep 2
-					echo "Entered the FAILSAFE BRANCH...." && echo && sleep 2
-					echo "ASSUMING AN AFFIRMATIVE RESPONSE...." && echo && sleep 2
-					continue
-					;;
-			esac
-
+			# failure of shred
+			echo "FAILED TO CONFIRM THE SHRED REMOVAL OF FILE:"
+			echo "${valid_path}" && echo
 		else
-			echo && echo "THAT'S NO VALID EMAIL ADDRESS, TRY AGAIN..." && sleep 2
-			continue
+			# success of shred
+			echo "SUCCESSFUL SHRED REMOVAL OF FILE:"
+			echo "${valid_path}" && echo
+
 		fi
-		
 	done
 
 	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
 }
-#
-################################
-## 
-function get_sender_uid
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
-
-	while true
-	do
-
-		uid=""
-
-		echo "Enter the user-id of the SENDER:"
-		read uid
-
-		# TODO: later, validate sender_uid HERE. IT MUST CORRESPOND TO ONE OF THE PRIVATE KEYS.
-		# test uid for valid email form
-		test_email_valid_form "$uid"
-		if [ $? -eq 0 ]
-		then
-			echo && echo "EMAIL ADDRESS \"$uid\" IS VALID"
-			
-			sender_uid="$uid"
-			echo "sender user-id is now set to the value: $sender_uid"
-			break
-		else
-			echo && echo "THAT'S NO VALID EMAIL ADDRESS, TRY AGAIN..."
-			continue # just in case we add more code after here
-		fi
-
-	done
-
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
-}
-#
-##############################
-#
-function set_command_parameters
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
-
-	if [ $output_file_format == "ascii" ]
-	then
-		output_file_extension=".asc" #default
-	elif [ $output_file_format == "binary" ]
-	then
-		output_file_extension=".gpg"
-	else
-		msg="FAILSAFE BRANCH ENTERED. Exiting now..."
-		lib10k_exit_with_error "$E_OUT_OF_BOUNDS_BRANCH_ENTERED" "$msg"
-	fi	
-
-	if [ $encryption_system == "public_key" ]
-	then
-		echo "encrytion_system is set to public-key"
-		encryption_system_option='--encrypt'
-
-		#get_sender_uid
-		#echo "sender user-id is now set to the value: $sender_uid"
-		#
-		#get_recipient_uid
-		#for recipient in ${recipient_uid_list[@]}
-		#do
-		#	echo "From our array, a recipient is: ${recipient}"
-		#done
-
-		create_generic_pub_key_encryption_command_string
-
-	elif [ $encryption_system == "symmetric_key" ]
-	then
-		echo "encrytion_system is set to symmetric-key"
-		encryption_system_option='--symmetric'
-
-		create_generic_symmetric_key_encryption_command_string
-
-	else
-		msg="FAILSAFE BRANCH ENTERED. Exiting now..."
-		lib10k_exit_with_error "$E_OUT_OF_BOUNDS_BRANCH_ENTERED" "$msg"
-	fi
-
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
-}
-##############################
-##############################
-# list the keys available on the system
-# get the users' gpg user-id 
-# test that valid, ultimate trust fingerprint exists for that user-id
-function check_gpg_user_keys
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
-
-	userid=""
-
-	# issue gpg commands to list keys for now... just as a prompt of user-id details
-	bash -c "gpg --list-key"
-	bash -c "gpg --list-secret-keys"
-
-	# get the users' gpg UID from terminal
-	echo "To make sure you have keys here with which to ENCRYPT, we'll just look for a FINGERPRINT for your USER-ID" && echo
-	echo "Enter your user-id (example: you@your-domain.org)"
-
-	read userid && echo
-
-	# now check for a key-pair fingerprint. TODO: if not found, user should have the opportunity to try again
-	# TODO: THIS IS NOT THE RIGHT TEST, FIND SOMETHING BETTER LATER
-	bash -c "gpg --fingerprint "$userid" 2>/dev/null" # suppress stderr (but not stdout for now)
-	if [ $? -eq 0 ]
-	then
-		echo "KEY-PAIR FINGERPRINT IDENTIFIED FOR USER-ID OK"
-	else
-		# -> exit due to failure of any of the above tests:
-		msg="FAILED TO FIND THE KEY-PAIR FINGERPRINT FOR THAT USER-ID. Exiting now..."
-		lib10k_exit_with_error "$E_REQUIRED_PROGRAM_NOT_FOUND" "$msg"
-	fi
-
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
-}
-################################## 
-##############################
-# CODE TO ENCRYPT A SET OF FILES:
-##############################
-
-function gpg_encrypt_files
-{
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
-
-	# sets the generic_command global
-	# create a generic file encryption command string for either public key or symmetric key encryption:
-
-	encrypt_result=
-	# 
-	check_gpg_user_keys # from user
-	
-	echo "The value of encryption_system is set to: $encryption_system"
-	echo "The value of output_file_format is set to: $output_file_format"
-	echo "The value of sender_uid is set to: $sender_uid"
-
-	for item in ${recipient_uid_list[@]}
-	do
-		echo "One value of recipient_uid_list is set to: $item"
-	done
-
-	# if ALL the config items set ok, then continue with this command, else abort
-	set_command_parameters
-
-	#create, then execute each file specific encryption command, then shred plaintext file:
-	for valid_path in "${validated_array[@]}"
-	do
-		echo "about to execute on file: $valid_path"
-		execute_file_specific_encryption_command "$valid_path" #
-
-		# check that expected output file now exists, is accessible and has expected encypted file properties
-		verify_file_encryption_results "${valid_path}"
-		encrypt_result=$?
-		if [ $encrypt_result -eq 0 ]
-		then
-			echo && echo "SUCCESSFUL VERIFICATON OF ENCRYPTION encrypt_result: $encrypt_result"
-		else
-			msg="FAILURE REPORT. Unexpected encrypt_result: $encrypt_result. Exiting now..."
-			lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
-		fi	
-	done
-
-	# 6. SHRED THE PLAINTEXT FILES, NOW THAT ENCRYPTED VERSION HAVE BEEN MADE
-
-	# first checking that the shred program is installed
-	type shred > /dev/null 2>&1
-	if [ $? -eq 0 ]
-	then
-		shred_plaintext_files
-		verify_file_shred_results		
-	else
-		echo "FAILED TO FIND THE SHRED PROGRAM ON THIS SYSTEM, SO SKIPPED SHREDDING OF ORIGINAL PLAINTEXT FILES"
-	fi	
-
-	#return $encrypt_result # resulting from the last successful encryption only! So what use is that?
-
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
-}
 
 
-##############################
-##############################
-# check that the OpenPGP tool gpg is installed on the system
-#  
-function check_encryption_platform
-{		
-	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
-
-	type gpg > /dev/null 2>&1
-	if [ $? -eq 0 ]
-	then
-		echo "OpenPGP PROGRAM INSTALLED ON THIS SYSTEM OK"
-		# issue gpg commands to list keys for now... just to see what's there
-		bash -c "gpg --list-key"
-		#bash -c "gpg --list-secret-keys"
-	else
-		# -> exit due to failure of any of the above tests:
-		msg="FAILED TO FIND THE REQUIRED OpenPGP PROGRAM. Exiting now..."
-		lib10k_exit_with_error "$E_REQUIRED_PROGRAM_NOT_FOUND" "$msg"
-	fi
-
-	echo && echo "LEAVING FROM FUNCTION ${FUNCNAME[0]}" && echo
-}
-
-#################################################################
 
 main "$@"; exit

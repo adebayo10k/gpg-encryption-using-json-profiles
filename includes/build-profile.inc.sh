@@ -1,8 +1,12 @@
 #!/bin/bash
 # these functions import the json profile data and then structures
 # it into the specific array profile needed by program file encryption functions
-declare -a profile_keys_indexed_array=()
-declare -A profile_key_value_assoc_array=()
+profile_name=
+profile_description=
+encryption_system= # public_key | symmetric_key
+output_file_format= # ascii | binary
+sender_uid=    
+declare -a recipient_uid_list=()
 declare -A user_question_assoc_array=()
 chosen_profile_id=
 
@@ -29,7 +33,8 @@ function import_file_encryption_configuration ()
 	) 
 
 	# we'll put these keys into and indexed array,
-    # then loop over it to filter for each profile object profileName.
+    # then loop over it to filter for each profile object,
+    # then each profileName.
 	profile_id_array=( $profile_id_string )    	
     for profile_id in "${profile_id_array[@]}"
 	do
@@ -137,8 +142,10 @@ function assign_profile_values_to_variables() {
     encryption_system="$encryption_system_string"
     output_file_format="$output_file_format_string"
     sender_uid="$sender_uid_string"
-    OIFS=$IFS; IFS='|'
-	recipient_uid_list=( $recipient_uid_list_string	)
-	IFS=$OIFS
+    #OIFS=$IFS; IFS='|'
+    #recipient_uid_list=( $recipient_uid_list_string )
+    #IFS=$OIFS
+	recipient_uid_list="$recipient_uid_list_string"
+	
 }
 

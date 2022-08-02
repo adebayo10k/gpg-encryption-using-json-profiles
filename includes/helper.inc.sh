@@ -57,7 +57,9 @@ or the absolute path to the file.
 Simple file basename parameters are assumed to be
 in the current working directory.
 
-# Describe some interesting things to know here...
+Valid values for encryption profiles:
+encryptionSystem    public_key|symmetric_key
+outputFileFormat    ascii|binary
 
 
 help	Show this text.
