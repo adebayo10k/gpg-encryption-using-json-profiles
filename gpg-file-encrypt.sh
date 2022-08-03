@@ -212,7 +212,7 @@ function create_generic_symmetric_key_encryption_command_string() {
     generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
 	generic_command+="${output_file_extension} "
 	generic_command+="${encryption_system_option} ${file_path_placeholder}"
-    echo && echo "===generic command string===:" # debug
+    echo && echo -e "\033[0;34m===generic command string===\033[0m"  # debug
 	echo && echo "$generic_command" && echo # debug
 }
 
@@ -229,12 +229,11 @@ function gpg_encrypt_files() {
     do
         echo "valid path : $valid_path"
         create_file_specific_encryption_command "$valid_path"
+        check_file_specific_encryption_command "$valid_path"
 
-
-        # check_file_specific_encryption_command "$valid_path"
-
-        # execute_file_specific_encryption_command "$valid_path"
-       	#echo "about to execute on file: $valid_path"
+        execute_file_specific_encryption_command "$valid_path"
+       	
+        #echo "about to execute on file: $valid_path"
        	#execute_file_specific_encryption_command "$valid_path" #
 
     done
@@ -272,50 +271,41 @@ function gpg_encrypt_files() {
 ##############################
 # the absolute path to the plaintext file is passed in
 function create_file_specific_encryption_command() {
-
 	local valid_path="$1"
-
-    # using [,] sed delimiter to avoid interference with file path [/]
-	#file_specific_command=$(echo "$generic_command" | \
-    #sed -e 's,'$file_path_placeholder','$valid_path',' \
-	#| sed 's,'$file_path_placeholder','$valid_path',')
-
     # using [,] sed delimiter to avoid interference with file path [/]
 	file_specific_command=$(echo "$generic_command" | \
     sed -e 's,'$file_path_placeholder','$valid_path',g' \
-    )
-
-    echo && echo "===specific command string===:" 
-	echo && echo "$file_specific_command" && echo
-
-
+    )    
 }
 
 ##############################
-# the absolute path to the plaintext file is passed in
+# get user confirmation before executing the file_specific_command
+# the absolute path to the plaintext file is passed in.
+# user does visual check of the command string.
 function check_file_specific_encryption_command() {
-
 	valid_path="$1"
-
-
+    echo && echo -e "\033[1;34m===specific command string===\033[0m" 
+	echo && echo "$file_specific_command" && echo
+    responses_string='Yes, looks good. Encrypt it.|No, Quit the Program'
+    # get user decision whether command is good.
+    question_string='Does that command look good? OK to encrypt? Choose an option'
+    get_user_response "$question_string" "$responses_string"
+    # 1: yes, 2: no
+    user_response_code="$?"
+	# affirmative case
+	if [ "$user_response_code" -eq 1 ]; then
+		echo && echo -e "\e[32mEncrypting file...\e[m" && echo
+	else
+		# negative case || unexpected case
+		exit 0
+	fi	
 }
 
 ##############################
 # the absolute path to the plaintext file is passed in
 function execute_file_specific_encryption_command() {
-
 	valid_path="$1"
 
-	
-
-	# get user confirmation before executing file_specific_command
-	# [call a function for this, which can abort the whole encryption process if there's a problem at this point]
-	#echo && echo "Command look OK? Press ENTER to confirm"
-	#read	# just pause here for now
-#
-	## execute file_specific_command if return code from user confirmation = 0
-	## execute [here] using bash -c ...
-	#bash -c "$file_specific_command"
 
 }
 

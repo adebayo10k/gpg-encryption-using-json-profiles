@@ -41,8 +41,9 @@ function get_user_response() {
 		elif [ $REPLY -ge 1 ] && [ $REPLY -le ${#response_list[@]} ] 
 		then		
 			echo && echo "You Selected : ${response}"
-			#user_response_num="${REPLY}"
-            # set the value of the global user_response_string
+			# set the integer to be returned (whether used in caller context or not)
+            user_response_num="${REPLY}"
+            # set the value of the global user_response_string  (whether used in caller context or not)
             user_response_string="$response"
 			break
 		# unexpected, failsafe case
@@ -52,5 +53,5 @@ function get_user_response() {
 		fi
 	done
 	IFS=$OIFS
-	#return "$user_response_num"   
+	return "$user_response_num"   
 } 
