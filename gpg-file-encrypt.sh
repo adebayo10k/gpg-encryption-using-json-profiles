@@ -92,10 +92,11 @@ function main() {
     
     validate_output_format "$output_file_format"    
     validate_encryption_system "$encryption_system"    
-    test_uid_keys "$sender_uid" "$recipient_uid_list"
+    test_uid_keys "$sender_uid" "$recipient_uid_list"   
+
+	create_generic_command_string "$output_file_format" "$encryption_system"
     exit 0 #debug
 
-	create_generic_command_string
 
     # encrypt 
 
@@ -161,101 +162,56 @@ function test_uid_keys() {
 
 ##############################
 function create_generic_command_string() {
+    local output_file_format="$1"
+    local encryption_system="$2"
 
-
-	if [ $output_file_format == 'ascii' ]
-	then
-		output_file_extension=".asc" #default
-	elif [ $output_file_format == 'binary' ]
-	then
-		output_file_extension='.gpg'
-	else
-		msg="Fail. Exiting now..."
-		lib10k_exit_with_error "$E_OUT_OF_BOUNDS_BRANCH_ENTERED" "$msg"
-	fi	
-
-
-
-
-	if [ $encryption_system == 'public_key' ]
-	then
-		echo "encrytion_system is set to public-key"
-		encryption_system_option='--encrypt'
-
-		create_generic_pub_key_encryption_command_string
-
-	elif [ $encryption_system == 'symmetric_key' ]
-	then
-		echo "encrytion_system is set to symmetric-key"
-		encryption_system_option='--symmetric'
-
-		create_generic_symmetric_key_encryption_command_string
-
-	else
-		msg="FAIL. Exiting now..."
-		lib10k_exit_with_error "$E_OUT_OF_BOUNDS_BRANCH_ENTERED" "$msg"
-	fi
-
+	[ $output_file_format == 'ascii' ] && output_file_extension=".asc"
+	[ $output_file_format == 'binary' ] && output_file_extension='.gpg'
+	[ $encryption_system == 'public_key' ] && encryption_system_option='--encrypt'
+    [ $encryption_system == 'symmetric_key' ] && encryption_system_option='--symmetric'
+    [ $encryption_system == 'public_key' ] && \
+    create_generic_public_key_encryption_command_string "$output_file_format" "$encryption_system"
+    [ $encryption_system == 'symmetric_key' ] && \
+    create_generic_symmetric_key_encryption_command_string "$output_file_format" "$encryption_system"
 }
 
-
-
 ##############################
-# this function called if encryption_system="public_key"
-function create_generic_pub_key_encryption_command_string() {
-
+# this function called if encryption_system=="public_key"
+function create_generic_public_key_encryption_command_string() {
+    local output_file_format="$1"
+    local encryption_system="$2"
 	# THIS IS THE FORM:
-	# $ gpg --armor --output "$plaintext_file_fullpath.ENCRYPTED.asc" \
+	# $ gpg [--armor] --output "$plaintext_file_fullpath.ENCRYPTED[.asc|.gpg]" \
 	# --local-user <uid> --recipient <uid> --encrypt "$plaintext_file_fullpath"
-
-	generic_command=
-
+	generic_command=''
 	generic_command+="${gpg_command} "
-
-	if [ $output_file_format == 'ascii' ]
-	then
-		generic_command+="${armor_option} "
-		generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
-		generic_command+="${output_file_extension} "
-	fi
-
+    [ $output_file_format == 'ascii' ] && generic_command+="${armor_option} "
+	generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
+	generic_command+="${output_file_extension} "
 	generic_command+="${sender_option} "
 	generic_command+="${sender_uid} "
-
-	for recipient in ${recipient_uid_list[@]}
+    OIFS=$IFS; IFS='|'
+	for recipient in $recipient_uid_list
 	do
 		generic_command+="${recipient_option} ${recipient} "
 	done
-
+    IFS=$OIFS
 	generic_command+="${encryption_system_option} ${file_path_placeholder}"
-
-	echo "$generic_command"
-
+	echo "$generic_command" #debug
 }
 
-
 ##############################
-# this function called if encryption_system="symmetric"
+# this function called if encryption_system=="symmetric_key"
 function create_generic_symmetric_key_encryption_command_string() {
-
 	# COMMAND FORM:
-	# $ gpg --armor --output "$plaintext_file_fullpath.ENCRYPTED.asc" --symmetric "$plaintext_file_fullpath"
-
-	generic_command=
-
+	# $ gpg [--armor] --output "$plaintext_file_fullpath.ENCRYPTED[.asc]" --symmetric "$plaintext_file_fullpath"
+	generic_command=''
 	generic_command+="${gpg_command} "
-
-	if [ $output_file_format == 'ascii' ]
-	then
-		generic_command+="${armor_option} "
-		generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
-		generic_command+="${output_file_extension} "
-	fi
-
+    [ $output_file_format == 'ascii' ] && generic_command+="${armor_option} "
+    generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
+	generic_command+="${output_file_extension} "
 	generic_command+="${encryption_system_option} ${file_path_placeholder}"
-
-	echo "$generic_command"
-
+	echo "$generic_command" # debug
 }
 
 
@@ -264,6 +220,8 @@ function gpg_encrypt_files() {
 
 	# sets the generic_command global
 	# create a generic file encryption command string for either public key or symmetric key encryption:
+
+    # command execution may fail if an invalid combination of parameters has been used to create the command string. Make sure we capture this an fail gracefully.
 
 
 	#create, then execute each file specific encryption command, then shred plaintext file:
