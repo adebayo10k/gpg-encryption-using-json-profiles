@@ -20,10 +20,10 @@ function import_file_encryption_configuration ()
 	# the -j option gives unquoted and no newline
 	# no option gives quoted, line-separated strings
 
-	# values that are returned by jq as 'concatenated strings to be arrayed' get an IFS.
-	# single string values don't. 
+	# values like the list of recipients that are returned by jq as 'concatenated 
+	# strings to be arrayed' get an IFS. single string values don't. 
 	# conveniently, the same sed command is applied to both (all) cases though!
-	# therefore, for consistent handling, everything is single-quoted.
+	# therefore, for consistent handling, all property values COULD be single-quoted.
 
 	#=========================================
 
@@ -133,7 +133,7 @@ function assign_profile_values_to_variables() {
 	jq -j --arg profile_id "$chosen_profile_id" '.[] |
 	select(.profileID==$profile_id) |
 	.recipientUIDList[]' | \
-	sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//" \
+	sed "s/''/|/g; s/^'//; s/'$//" \
 	) 
 
     # Finally, assign JSON values to the appropriate program variable.

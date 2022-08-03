@@ -92,13 +92,11 @@ function main() {
     
     validate_output_format "$output_file_format"    
     validate_encryption_system "$encryption_system"    
-    test_uid_keys "$sender_uid" "$recipient_uid_list"   
-
+    test_uid_keys "$sender_uid" "$recipient_uid_list"
 	create_generic_command_string "$output_file_format" "$encryption_system"
+    
+    gpg_encrypt_files
     exit 0 #debug
-
-
-    # encrypt 
 
     # verify encrypt
 
@@ -161,6 +159,8 @@ function test_uid_keys() {
 }
 
 ##############################
+# sets the generic_command global.
+# create a generic file encryption command string for either public key or symmetric key encryption.
 function create_generic_command_string() {
     local output_file_format="$1"
     local encryption_system="$2"
@@ -197,7 +197,8 @@ function create_generic_public_key_encryption_command_string() {
 	done
     IFS=$OIFS
 	generic_command+="${encryption_system_option} ${file_path_placeholder}"
-	echo "$generic_command" #debug
+    echo && echo "===generic command string===:" # debug
+	echo && echo "$generic_command" && echo # debug
 }
 
 ##############################
@@ -211,69 +212,121 @@ function create_generic_symmetric_key_encryption_command_string() {
     generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
 	generic_command+="${output_file_extension} "
 	generic_command+="${encryption_system_option} ${file_path_placeholder}"
-	echo "$generic_command" # debug
+    echo && echo "===generic command string===:" # debug
+	echo && echo "$generic_command" && echo # debug
 }
 
 
 ##############################
+#create, then execute each file specific encryption command.
 function gpg_encrypt_files() {
-
-	# sets the generic_command global
-	# create a generic file encryption command string for either public key or symmetric key encryption:
 
     # command execution may fail if an invalid combination of parameters has been used to create the command string. Make sure we capture this an fail gracefully.
 
+    # from here on, we'll have to go though the whole encrypt-verify-delete process for each file, one at a time.
+
+    for valid_path in "${validated_files_array[@]}"
+    do
+        echo "valid path : $valid_path"
+        create_file_specific_encryption_command "$valid_path"
+
+
+        # check_file_specific_encryption_command "$valid_path"
+
+        # execute_file_specific_encryption_command "$valid_path"
+       	#echo "about to execute on file: $valid_path"
+       	#execute_file_specific_encryption_command "$valid_path" #
+
+    done
+
+
+
 
 	#create, then execute each file specific encryption command, then shred plaintext file:
-	for valid_path in "${validated_files_array[@]}"
-	do
-		echo "about to execute on file: $valid_path"
-		execute_file_specific_encryption_command "$valid_path" #
-
-		# check that expected output file now exists, is accessible and has expected encypted file properties
-		verify_file_encryption_results "${valid_path}"
-		encrypt_result=$?
-		if [ $encrypt_result -eq 0 ]
-		then
-			echo && echo "SUCCESSFUL VERIFICATON OF ENCRYPTION. encrypt_result: $encrypt_result"
-		else
-			msg="FAILURE REPORT. Unexpected encrypt_result: $encrypt_result. Exiting now..."
-			lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
-		fi	
-	done
-
-	# 6. SHRED THE PLAINTEXT FILES, NOW THAT ENCRYPTED VERSION HAVE BEEN MADE
-
-    shred_plaintext_files
-	verify_file_shred_results
-
+	#for valid_path in "${validated_files_array[@]}"
+	#do
+	#	echo "about to execute on file: $valid_path"
+	#	execute_file_specific_encryption_command "$valid_path" #
+#
+	#	# check that expected output file now exists, is accessible and has expected encypted file properties
+	#	verify_file_encryption_results "${valid_path}"
+	#	encrypt_result=$?
+	#	if [ $encrypt_result -eq 0 ]
+	#	then
+	#		echo && echo "SUCCESSFUL VERIFICATON OF ENCRYPTION. encrypt_result: $encrypt_result"
+	#	else
+	#		msg="FAILURE REPORT. Unexpected encrypt_result: $encrypt_result. Exiting now..."
+	#		lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
+	#	fi	
+	#done
+#
+	## 6. SHRED THE PLAINTEXT FILES, NOW THAT ENCRYPTED VERSION HAVE BEEN MADE
+#
+    #shred_plaintext_files
+	#verify_file_shred_results
+#
 	#return $encrypt_result # resulting from the last successful encryption only! So what use is that?
 
 }
 
 ##############################
 # the absolute path to the plaintext file is passed in
-#
+function create_file_specific_encryption_command() {
+
+	local valid_path="$1"
+
+    # using [,] sed delimiter to avoid interference with file path [/]
+	#file_specific_command=$(echo "$generic_command" | \
+    #sed -e 's,'$file_path_placeholder','$valid_path',' \
+	#| sed 's,'$file_path_placeholder','$valid_path',')
+
+    # using [,] sed delimiter to avoid interference with file path [/]
+	file_specific_command=$(echo "$generic_command" | \
+    sed -e 's,'$file_path_placeholder','$valid_path',g' \
+    )
+
+    echo && echo "===specific command string===:" 
+	echo && echo "$file_specific_command" && echo
+
+
+}
+
+##############################
+# the absolute path to the plaintext file is passed in
+function check_file_specific_encryption_command() {
+
+	valid_path="$1"
+
+
+}
+
+##############################
+# the absolute path to the plaintext file is passed in
 function execute_file_specific_encryption_command() {
 
 	valid_path="$1"
 
-	# using [,] delimiter to avoid interference with file path [/]
-	file_specific_command=$(echo "$generic_command" | sed 's,'$file_path_placeholder','$valid_path',' \
-	| sed 's,'$file_path_placeholder','$valid_path',')
-
-	echo "$file_specific_command"
+	
 
 	# get user confirmation before executing file_specific_command
 	# [call a function for this, which can abort the whole encryption process if there's a problem at this point]
-	echo && echo "Command look OK? Press ENTER to confirm"
-	read	# just pause here for now
-
-	# execute file_specific_command if return code from user confirmation = 0
-	# execute [here] using bash -c ...
-	bash -c "$file_specific_command"
+	#echo && echo "Command look OK? Press ENTER to confirm"
+	#read	# just pause here for now
+#
+	## execute file_specific_command if return code from user confirmation = 0
+	## execute [here] using bash -c ...
+	#bash -c "$file_specific_command"
 
 }
+
+
+
+
+
+
+
+
+
 
 
 
