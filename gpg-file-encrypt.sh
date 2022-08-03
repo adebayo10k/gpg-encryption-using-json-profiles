@@ -12,8 +12,8 @@ command_basename="$(basename $command_fullpath)"
 command_dirname="$(dirname $command_fullpath)"
 
 # verify existence of library dependencies...
-# where this project is a submodule, contents of its' library submodule directory \
-# are NOT populated, so it uses those of the main project.
+# where this project is a submodule, the contents of IT'S OWN library \
+# submodule directory are NOT populated. It uses those of the main project.
 if [ -d "${command_dirname}/shared-functions-library" ] && \
 [ -n "$(ls ${command_dirname}/shared-functions-library | grep  'shared-bash-')" ]
 then
@@ -85,8 +85,7 @@ function main() {
 	echo "encryption_system: $encryption_system"
 	echo "sender_uid: $sender_uid"
 	echo "recipient_uid_list: $recipient_uid_list" # an IFS | separated string
-    #echo "recipient_uid_list: ${recipient_uid_list[@]}"	
-	#echo "recipient_uid_list size: ${#recipient_uid_list[@]}"
+
 	echo 
 	
     
@@ -98,11 +97,7 @@ function main() {
     gpg_encrypt_files
     exit 0 #debug
 
-    # verify encrypt
-
-    # shred
-
-    # verify shred
+    # shred and verify shred
 	
 } ## end main
 
@@ -197,7 +192,7 @@ function create_generic_public_key_encryption_command_string() {
 	done
     IFS=$OIFS
 	generic_command+="${encryption_system_option} ${file_path_placeholder}"
-    echo && echo "===generic command string===:" # debug
+    echo && echo -e "\033[35m===generic command string===\033[0m"  # debug
 	echo && echo "$generic_command" && echo # debug
 }
 
@@ -212,60 +207,31 @@ function create_generic_symmetric_key_encryption_command_string() {
     generic_command+="${output_option} ${file_path_placeholder}.ENCRYPTED"
 	generic_command+="${output_file_extension} "
 	generic_command+="${encryption_system_option} ${file_path_placeholder}"
-    echo && echo -e "\033[0;34m===generic command string===\033[0m"  # debug
+    echo && echo -e "\033[35m===generic command string===\033[0m"  # debug
 	echo && echo "$generic_command" && echo # debug
 }
 
 
 ##############################
 #create, then execute each file specific encryption command.
+# from here on, we'll have to go though the whole \
+# encrypt-verify-delete process for each file, one at a time.
 function gpg_encrypt_files() {
-
-    # command execution may fail if an invalid combination of parameters has been used to create the command string. Make sure we capture this an fail gracefully.
-
-    # from here on, we'll have to go though the whole encrypt-verify-delete process for each file, one at a time.
-
     for valid_path in "${validated_files_array[@]}"
     do
         echo "valid path : $valid_path"
         create_file_specific_encryption_command "$valid_path"
         check_file_specific_encryption_command "$valid_path"
-
-        execute_file_specific_encryption_command "$valid_path"
-       	
-        #echo "about to execute on file: $valid_path"
-       	#execute_file_specific_encryption_command "$valid_path" #
-
+        execute_file_specific_encryption_command "$file_specific_command"
+        encrypt_result=$?
+        if [ $encrypt_result -eq 0 ]
+    	then
+    		echo && echo -e "\033[1;32mENCRYPTION SUCCESSFUL.\033[0m" && echo && echo
+    	else
+    		msg="FAILURE REPORT. Unexpected encrypt result. Exiting now..."
+    		lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
+    	fi
     done
-
-
-
-
-	#create, then execute each file specific encryption command, then shred plaintext file:
-	#for valid_path in "${validated_files_array[@]}"
-	#do
-	#	echo "about to execute on file: $valid_path"
-	#	execute_file_specific_encryption_command "$valid_path" #
-#
-	#	# check that expected output file now exists, is accessible and has expected encypted file properties
-	#	verify_file_encryption_results "${valid_path}"
-	#	encrypt_result=$?
-	#	if [ $encrypt_result -eq 0 ]
-	#	then
-	#		echo && echo "SUCCESSFUL VERIFICATON OF ENCRYPTION. encrypt_result: $encrypt_result"
-	#	else
-	#		msg="FAILURE REPORT. Unexpected encrypt_result: $encrypt_result. Exiting now..."
-	#		lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
-	#	fi	
-	#done
-#
-	## 6. SHRED THE PLAINTEXT FILES, NOW THAT ENCRYPTED VERSION HAVE BEEN MADE
-#
-    #shred_plaintext_files
-	#verify_file_shred_results
-#
-	#return $encrypt_result # resulting from the last successful encryption only! So what use is that?
-
 }
 
 ##############################
@@ -304,9 +270,8 @@ function check_file_specific_encryption_command() {
 ##############################
 # the absolute path to the plaintext file is passed in
 function execute_file_specific_encryption_command() {
-	valid_path="$1"
-
-
+	local file_specific_command="$1"
+    bash -c "$file_specific_command" || return 1
 }
 
 
@@ -315,6 +280,32 @@ function execute_file_specific_encryption_command() {
 
 
 
+
+
+    	#create, then execute each file specific encryption command, then shred plaintext file:
+    	#for valid_path in "${validated_files_array[@]}"
+    	#do
+    	#	echo "about to execute on file: $valid_path"
+    	#	execute_file_specific_encryption_command "$valid_path" #
+    #
+    	#	# check that expected output file now exists, is accessible and has expected encypted file properties
+    	#	verify_file_encryption_results "${valid_path}"
+    	#	encrypt_result=$?
+    	#	if [ $encrypt_result -eq 0 ]
+    	#	then
+    	#		echo && echo "SUCCESSFUL VERIFICATON OF ENCRYPTION. encrypt_result: $encrypt_result"
+    	#	else
+    	#		msg="FAILURE REPORT. Unexpected encrypt_result: $encrypt_result. Exiting now..."
+    	#		lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
+    	#	fi	
+    	#done
+    #
+    	## 6. SHRED THE PLAINTEXT FILES, NOW THAT ENCRYPTED VERSION HAVE BEEN MADE
+    #
+        #shred_plaintext_files
+    	#verify_file_shred_results
+    #
+    	#return $encrypt_result # resulting from the last successful encryption only! So what use is that?
 
 
 
@@ -324,47 +315,47 @@ function execute_file_specific_encryption_command() {
 # test for encrypted file type
 # test for read access to file 
 # 
-function verify_file_encryption_results() {
-
-	valid_path="$1"
-
-	# TODO: FIND SOME BETTER TESTS FOR A GPG ENCRYPTED FILE
-	result=$(file "${valid_path}.ENCRYPTED${output_file_extension}" | grep 'PGP') # &2>/dev/null)
-
-	if [ $? -eq 0 ] && [ "$encryption_system" == "public_key" ]
-	#if [ $result -eq 0 ]
-	then
-		echo "PUBLIC KEY ENCRYPTED FILE CREATED SUCCESSFULLY AS:"
-		echo "${valid_path}.ENCRYPTED${output_file_extension}"
-	elif [ $? -eq 0 ] && [ "$encryption_system" == "symmetric_key" ]
-	then
-		echo "SYMMETRIC KEY ENCRYPTED FILE CREATED SUCCESSFULLY AS:"
-		echo "${valid_path}.ENCRYPTED${output_file_extension}"
-	else
-		return $E_INCORRECT_FILE_TYPE #		
-	fi
-
-	
-	# test encrypted file for expected file type (regular) and read permission
-	# TODO: THIS SHOULD BE ONE FOR THE lib10k_test_file_path_access FUNCTION
-	if [ -f "${valid_path}.ENCRYPTED${output_file_extension}" ] \
-	&& [ -r "${valid_path}.ENCRYPTED${output_file_extension}" ]
-	then
-		# encrypted file found and accessible
-		echo "Encrypted file found to be readable" && echo
-	else
-		# -> exit due to failure of any of the above tests:
-		echo "Returning from function ${FUNCNAME[0]} in script $(basename $0)"
-		return $E_REQUIRED_FILE_NOT_FOUND
-	fi
-
-
-	return 0
-}
+#function verify_file_encryption_results() {
+#
+#	valid_path="$1"
+#
+#	# TODO: FIND SOME BETTER TESTS FOR A GPG ENCRYPTED FILE
+#	result=$(file "${valid_path}.ENCRYPTED${output_file_extension}" | grep 'PGP') # &2>/dev/null)
+#
+#	if [ $? -eq 0 ] && [ "$encryption_system" == "public_key" ]
+#	#if [ $result -eq 0 ]
+#	then
+#		echo "PUBLIC KEY ENCRYPTED FILE CREATED SUCCESSFULLY AS:"
+#		echo "${valid_path}.ENCRYPTED${output_file_extension}"
+#	elif [ $? -eq 0 ] && [ "$encryption_system" == "symmetric_key" ]
+#	then
+#		echo "SYMMETRIC KEY ENCRYPTED FILE CREATED SUCCESSFULLY AS:"
+#		echo "${valid_path}.ENCRYPTED${output_file_extension}"
+#	else
+#		return $E_INCORRECT_FILE_TYPE #		
+#	fi
+#
+#	
+#	# test encrypted file for expected file type (regular) and read permission
+#	# TODO: THIS SHOULD BE ONE FOR THE lib10k_test_file_path_access FUNCTION
+#	if [ -f "${valid_path}.ENCRYPTED${output_file_extension}" ] \
+#	&& [ -r "${valid_path}.ENCRYPTED${output_file_extension}" ]
+#	then
+#		# encrypted file found and accessible
+#		echo "Encrypted file found to be readable" && echo
+#	else
+#		# -> exit due to failure of any of the above tests:
+#		echo "Returning from function ${FUNCNAME[0]} in script $(basename $0)"
+#		return $E_REQUIRED_FILE_NOT_FOUND
+#	fi
+#
+#
+#	return 0
+#}
 
 
 ##############################
-# standard procedure once encrypted versions exits: remove the plaintext versions!
+# best practice once encrypted versions exits: remove the plaintext versions!
 function shred_plaintext_files() {
 	echo && echo "ENTERED INTO FUNCTION ${FUNCNAME[0]}" && echo
 
