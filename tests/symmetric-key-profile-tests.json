@@ -1,0 +1,78 @@
+[
+    {
+        "profileID": "0",
+        "profileName": "symmetric key test0",
+        "profileDescription": "valid config, valid data",
+        "encryptionSystem": "symmetric_key",
+        "outputFileFormat": "ascii",
+        "senderUID": "",
+        "recipientUIDList": []
+    },
+    {
+        "profileID": "1",
+        "profileName": "symmetric key test1",
+        "profileDescription": "valid config, invalid data",
+        "encryptionSystem": "symmetric_key",
+        "outputFileFormat": "ascii",
+        "senderUID": "what?symmetric?ok",
+        "recipientUIDList": []
+    },
+    {
+        "profileID": "2",
+        "profileName": "symmetric key test2",
+        "profileDescription": "invalid config, valid data",
+        "encryptionSystem": "symmetric_key",
+        "outputFileFormat": "eh?",
+        "senderUID": "",
+        "recipientUIDList": ["just@info.org"]
+    },
+    {
+        "profileID": "3",
+        "profileName": "symmetric key test3",
+        "profileDescription": "invalid config, invalid data",
+        "encryptionSystem": "symmetric_keypassphrase",
+        "outputFileFormat": "ascii",
+        "senderUID": "",
+        "recipientUIDList": ["not@keyring.com"]
+    },
+    {
+        "profileID": "4",
+        "profileName": "symmetric key test4",
+        "profileDescription": "valid config, valid data",
+        "encryptionSystem": "symmetric_key",
+        "outputFileFormat": "ascii",
+        "senderUID": "",
+        "recipientUIDList": [
+            "friend@work.org"
+        ]
+    },
+    {
+        "profileID": "5",
+        "profileName": "symmetric key test5",
+        "profileDescription": "invalid config, invalid data",
+        "encryptionSystem": "unknown",
+        "outputFileFormat": "utf-8",
+        "senderUID": "me",
+        "recipientUIDList": []
+    },
+    {
+        "profileID": "6",
+        "profileName": "symmetric key test6",
+        "profileDescription": "invalid config, valid data",
+        "encryptionSystem": "none",
+        "outputFileFormat": "ascii",
+        "senderUID": "",
+        "recipientUIDList": [
+            "friend@work.org"
+        ]
+    },
+    {
+        "profileID": "7",
+        "profileName": "symmetric key test7",
+        "profileDescription": "invalid config, valid data",
+        "encryptionSystem": "",
+        "outputFileFormat": "ascii",
+        "senderUID": "",
+        "recipientUIDList": []
+    }
+]

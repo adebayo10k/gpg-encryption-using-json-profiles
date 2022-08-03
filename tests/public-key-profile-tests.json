@@ -1,0 +1,95 @@
+[
+    {
+        "profileID": "0",
+        "profileName": "public key test0",
+        "profileDescription": "valid config, valid data",
+        "encryptionSystem": "public_key",
+        "outputFileFormat": "binary",
+        "senderUID": "self@work.org",
+        "recipientUIDList": [
+            "'self@work.org'",
+            "'friend@work.org'"
+        ]
+    },
+    {
+        "profileID": "1",
+        "profileName": "public key test1",
+        "profileDescription": "valid config, valid data",
+        "encryptionSystem": "public_key",
+        "outputFileFormat": "binary",
+        "senderUID": "self@home.org",
+        "recipientUIDList": [
+            "'self@home.org'",
+            "'friend@work.org'"
+        ]
+    },
+    {
+        "profileID": "2",
+        "profileName": "public key test2",
+        "profileDescription": "invalid config, valid data",
+        "encryptionSystem": "",
+        "outputFileFormat": "binary",
+        "senderUID": "self@work.org",
+        "recipientUIDList": [
+            "'self@work.org'",
+            "'friend@work.org'"
+        ]
+    },
+    {
+        "profileID": "3",
+        "profileName": "public key test3",
+        "profileDescription": "invalid config, valid data",
+        "encryptionSystem": "public_key",
+        "outputFileFormat": "",
+        "senderUID": "self@work.org",
+        "recipientUIDList": [
+            "'self@work.org'",
+            "'friend@work.org'"
+        ]
+    },
+    {
+        "profileID": "4",
+        "profileName": "public key test4",
+        "profileDescription": "valid config, invalid data",
+        "encryptionSystem": "public_key",
+        "outputFileFormat": "binary",
+        "senderUID": "",
+        "recipientUIDList": [
+            "'self@work.org'",
+            "'friend@work.org'"
+        ]
+    },
+    {
+        "profileID": "5",
+        "profileName": "public key test5",
+        "profileDescription": "valid config, invalid data",
+        "encryptionSystem": "public_key",
+        "outputFileFormat": "ascii",
+        "senderUID": "self@work.org",
+        "recipientUIDList": "binary"
+    },
+    {
+        "profileID": "6",
+        "profileName": "public key test6",
+        "profileDescription": "invalid config, invalid data",
+        "encryptionSystem": "help",
+        "outputFileFormat": "binary",
+        "senderUID": "datadatadata",
+        "recipientUIDList": [
+            "'self@work.org'",
+            "'friend@work.org'"
+        ]
+    },
+    {
+        "profileID": "7",
+        "profileName": "public key test7",
+        "profileDescription": "invalid config, invalid data",
+        "encryptionSystem": "private_key",
+        "outputFileFormat": "binary",
+        "senderUID": "mitm@work.org",
+        "recipientUIDList": [
+            "'self@work.org'",
+            "'friend@work.org'"
+        ]
+    }
+]
