@@ -11,7 +11,7 @@ The internet is not a trusted network.
 
 ## About this Project
 
-A highly opinionated source code generator - that source code being a basic, single-line, `gpg` command.
+A highly opinionated source code generator - that _source code_ being a basic, single-line, `gpg` command.
 A BASH shell program that uses JSON format profiles to create and interactively execute `gpg` file encryption commands.
 Simplifies the encryption of messages by abstracting away the command details.
 
@@ -38,17 +38,17 @@ The program was developed and tested only on 64-bit Ubuntu (20.04) Linux and wit
 
 #### 1. Build the profile
 
-- You have one or more messages you need to encrypt before sending to an existing public key encrypted message correspondent.
-- You run the program with the files (message(s)) to encrypt as command line parameters.
-- The program validates the files.
-- You select the appropriate human friendly profile name.
+- You have one or more messages you need to encrypt before sending to an existing public key encrypted messaging correspondent.
+- You run the program with the plaintext files (message(s)) to encrypt as command line parameters.
+- The program validates the plaintext files.
+- You select the appropriate human-friendly profile name.
 - The program uses jq to filter-in the appropriate encryption parameters from your JSON format profile document.
 - The program builds the in-memory data structure needed for that particular communication.
 
 #### 2. Create the command strings
 
 - The program checks that your gpg keyring contains the necessary public keys for every recipient with which you're about to communicate that secret message.
-- The program then crafts an arbitrary length command, which it presents for your verification and approval.
+- The program then crafts an arbitrary length command, which it presents, for your verification and approval.
 
 #### 3. Interactively encrypt and shred the plaintext messages
 
@@ -60,7 +60,7 @@ The program was developed and tested only on 64-bit Ubuntu (20.04) Linux and wit
 
 - That whole process took a matter of seconds.
 - Crafting a single command by hand, might take longer and be more error-prone.
-- The program is only slightly more than a wrapper for gpg, so remains portable, with minimal dependencies.
+- The program is only slightly more than a wrapper for `gpg`, so remains portable, with minimal dependencies.
 
 So, for example, creating and issuing a `gpg` encryption command that public key encrypts 10 files, making them only decryptable by say, 20 recipients (of course each with their own public key) is achieved using the program in a matter of seconds.
 Obviously `gpg` doesn't care if the single-line command wraps 10 lines either.
@@ -94,7 +94,7 @@ git clone --recurse-submodules https://github.com/adebayo10k/gpg-encryption-usin
 
 ```
 
-NOTE: There are multiple ways of doing this. Check the Github documentation if unfamiliar.
+NOTE: There are multiple ways of doing this. Check the [Github documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules), or this nice [submodule explanation](https://gist.github.com/gitaarik/8735255), if unfamiliar.
 
 
 
@@ -226,7 +226,7 @@ Original plaintext files:
 
 1) Yes, shred them all.
 2) No, Keep them and Quit the Program
-OK to Shred the plaintext files? (Best practice)? Choose an option : 1
+OK to Shred the plaintext files? (Best practice). Choose an option : 1
 
 You Selected : Yes, shred them all.
 
@@ -284,7 +284,7 @@ Feed the program with combinations of valid and invalid configurations.
 None.
 
 ## License
-No changes or additions. See [LICENCE](./LICENSE).
+See [LICENCE](./LICENSE).
 
 
 
