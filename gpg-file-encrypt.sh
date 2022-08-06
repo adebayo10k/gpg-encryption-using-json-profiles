@@ -210,7 +210,7 @@ function gpg_encrypt_files() {
         encrypt_result=$?
         if [ $encrypt_result -eq 0 ]
     	then
-    		echo && echo -e "\033[1;32mENCRYPTION SUCCESSFUL.\033[0m" && echo && echo
+    		echo && echo -e "${GREEN_BOLD}ENCRYPTION SUCCESSFUL.${NC}" && echo && echo
     	else
     		msg="FAILURE REPORT. Unexpected encrypt result. Exiting now..."
     		lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
@@ -235,7 +235,7 @@ function create_file_specific_encryption_command() {
 function check_file_specific_encryption_command() {
 	valid_path="$1"
     echo && echo -e "File to encrypt : $valid_path"
-    echo && echo -e "\033[1;34m===specific encryption command string===\033[0m" 
+    echo && echo -e "${BLUE}===specific encryption command string===${NC}" 
 	echo && echo -e "$file_specific_command" && echo    
     # get user decision whether command is good.
     question_string='Does that command look good? OK to encrypt? Choose an option'
@@ -245,7 +245,7 @@ function check_file_specific_encryption_command() {
     user_response_code="$?"
 	# affirmative case
 	if [ "$user_response_code" -eq 1 ]; then
-		echo && echo -e "\e[32mEncrypting file...\e[m" && echo
+		echo && echo -e "${GREEN}Encrypting file...${NC}" && echo
 	else
 		# negative case || unexpected case
 		exit 0
@@ -278,7 +278,7 @@ function shred_plaintext_files() {
     user_response_code="$?"
 	# affirmative case
 	if [ "$user_response_code" -eq 1 ]; then
-		echo && echo -e "\e[32mAttempting Shred...\e[m" && echo
+		echo && echo -e "${GREEN}Attempting Shred...${NC}" && echo
         # shred the plaintext file and verify its' removal
 	    for valid_path in "${validated_files_array[@]}"
 	    do
@@ -299,7 +299,7 @@ function shred_plaintext_files() {
 			echo "${valid_path}" && echo
 		else
 			# success of shred
-			echo && echo -e "\e[32mSUCCESSFUL SHRED REMOVAL OF FILE:\e[m"
+			echo && echo -e "${GREEN}SUCCESSFUL SHRED REMOVAL OF FILE:${NC}"
 			echo "${valid_path}" && echo
 		fi
 	done
