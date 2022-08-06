@@ -7,14 +7,15 @@
 #########################
 program_title="gpg file encrypter"
 original_author="damola adebayo"
-declare -i max_expected_no_of_program_parameters=99 # arbitrary for now
-declare -i min_expected_no_of_program_parameters=1
-declare -ir actual_no_of_program_parameters=$#
+#declare -i max_expected_no_of_program_parameters=99 # arbitrary for now
+#declare -i min_expected_no_of_program_parameters=1
+#declare -ir actual_no_of_program_parameters=$#
 all_the_parameters_string="$@"
-declare -a incoming_array=( $all_the_parameters_string )
-no_of_program_parameters=$#
+declare -a incoming_array=( $@ )
+#no_of_program_parameters=$#
 declare -a working_array=()
 declare -a validated_files_array=()
+echo $#
 
 #########################
 # FUNCTION DECLARATIONS:
@@ -24,13 +25,10 @@ function check_all_program_preconditions() {
     local program_dependencies=("jq" "shred" "gpg")
     # check program dependencies, exit 1 if can't even do that
 	lib10k_check_program_dependencies "${program_dependencies[@]}" || exit 1
-    # check the number of parameters to this program
-	lib10k_check_no_of_program_args
 	verify_program_args "$all_the_parameters_string"
 	[ $? -eq 0 ] || usage	
-	validate_program_args
-    [ $? -eq 0 ] && validated_files_array=("${working_array[@]}")	
-
+	validate_program_args "$all_the_parameters_string"
+    [ $? -eq 0 ] && validated_files_array=("${working_array[@]}")
 }
 
 # check whether program parameters meet our defined specification
@@ -38,6 +36,7 @@ function check_all_program_preconditions() {
 # - one or more absolute paths to plaintext files to be encrypted
 # - the string 'help'
 function verify_program_args() {
+    local all_the_parameters_string="$1"
 	[ -z "$all_the_parameters_string" ] && return 1
 	[ -n "$all_the_parameters_string" ] && [ "$all_the_parameters_string" == 'help' ] && return 1
 	[ -n "$all_the_parameters_string" ] && return 0
@@ -50,8 +49,7 @@ function usage () {
 Usage:	$command_basename [help] | FILE...
 
 GnuPG encrypt one or more FILE(s).
-FILE can be either the basename of a file in the pwd,
-or the absolute path to the file.
+FILE can be either the basename or the absolute path to the file.
 Simple file basename parameters are assumed to be
 in the current working directory.
 
@@ -73,6 +71,14 @@ exit 0
 # this function does the file path tests on each of them...
 # a code block with a failing test must exit the program immediately.
 function validate_program_args() {
+    local $all_the_parameters_string="$1"
+
+
+    # if any of the args contain illegal filename characters (including empty string)
+    # exit program
+
+    exit 0
+
     # assume solitary file basename is located in current directory.
     # modifies these args by adding a leading ./ before tests.
     # if any of the args looks like a basename, mutate it in the working array.
@@ -80,10 +86,14 @@ function validate_program_args() {
 	do
 		if [[ $incoming_arg =~ $FILE_BASENAME_LA_REGEX ]]
 		then
+            echo "BASENAME REGEX MATCHED"
 			incoming_arg="./$incoming_arg"
 		fi
+        echo "this->${incoming_arg}<- "
         working_array+=("$incoming_arg") 
 	done
+
+    
 
 	# if any of the args is now not in the form of an absolute file path, \
     # exit program.
