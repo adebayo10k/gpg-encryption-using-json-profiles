@@ -22,8 +22,6 @@ declare -a validated_files_array=()
 #
 function check_all_program_preconditions() {
     local program_dependencies=("jq" "shred" "gpg")
-    ## Display a program header
-	lib10k_display_program_header "$program_title" "$original_author"
     # check program dependencies, exit 1 if can't even do that
 	lib10k_check_program_dependencies "${program_dependencies[@]}" || exit 1
     # check the number of parameters to this program

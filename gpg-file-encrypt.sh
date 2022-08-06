@@ -77,16 +77,6 @@ function main() {
     # CALLS TO FUNCTIONS DECLARED IN includes/gpg-encrypt-profile-build.inc.sh
     #==========================
 	import_file_encryption_configuration
-
-    # debug output:
-    echo
-	echo "profile_name: $profile_name"
-	echo "profile_description: $profile_description"
-	echo "output_file_format: $output_file_format"
-	echo "encryption_system: $encryption_system"
-	echo "sender_uid: $sender_uid"
-	echo "recipient_uid_list: $recipient_uid_list" # an IFS | separated string
-	echo 	
     
     validate_output_format "$output_file_format"    
     validate_encryption_system "$encryption_system"    
