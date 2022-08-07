@@ -15,7 +15,7 @@ declare -a incoming_array=( $@ )
 #no_of_program_parameters=$#
 declare -a working_array=()
 declare -a validated_files_array=()
-echo $#
+
 
 #########################
 # FUNCTION DECLARATIONS:
@@ -71,29 +71,41 @@ exit 0
 # this function does the file path tests on each of them...
 # a code block with a failing test must exit the program immediately.
 function validate_program_args() {
-    local $all_the_parameters_string="$1"
+    local all_the_parameters_string="$1"
 
-
-    # if any of the args contain illegal filename characters (including empty string)
+    #1. catch the single blank character string that can bypass a for-loop
     # exit program
+    if [ $# -eq 1 ] && [[ "$all_the_parameters_string" =~ ^[[:blank:]]+$ ]]
+    then
+        msg="There seemed to be only blank characters as parameter. Exiting now..."
+		lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
+    fi
 
-    exit 0
+    #2. the for-loop seems to treat spaces as IFSs and not parameters, 
+    # and trim them if around other characters.
+    # allocate what's left to a working array? or keep passing strings around as parameters?
+    # if any of the args now contain illegal filename characters
+    # exit program
+    for incoming_arg in $all_the_parameters_string
+    do
+        if [[ ! $incoming_arg =~ ^[A-Za-z0-9\.\/_\-]+$ ]]
+        then
+            msg="A parameter seemed to contain illegal filename characters. Exiting now..."
+			lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
+        fi
+    done
 
     # assume solitary file basename is located in current directory.
     # modifies these args by adding a leading ./ before tests.
     # if any of the args looks like a basename, mutate it in the working array.
-	for incoming_arg in "${incoming_array[@]}"
+	for incoming_arg in $all_the_parameters_string
 	do
 		if [[ $incoming_arg =~ $FILE_BASENAME_LA_REGEX ]]
 		then
-            echo "BASENAME REGEX MATCHED"
 			incoming_arg="./$incoming_arg"
 		fi
-        echo "this->${incoming_arg}<- "
         working_array+=("$incoming_arg") 
 	done
-
-    
 
 	# if any of the args is now not in the form of an absolute file path, \
     # exit program.
