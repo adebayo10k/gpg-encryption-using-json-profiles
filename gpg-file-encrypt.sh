@@ -116,7 +116,7 @@ function test_uid_keys() {
     (gpg --list-key "$sender_uid" >/dev/null 2>&1) && \
     (gpg --list-secret-keys "$sender_uid" >/dev/null 2>&1)
     then
-        echo -e "Keypair identified for sender $sender_uid OK"
+        echo && echo -e "Keypair identified for sender $sender_uid OK"
     else
         msg="Failed to identify a Keypair for sender $sender_uid. Exiting now..."
 		lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
