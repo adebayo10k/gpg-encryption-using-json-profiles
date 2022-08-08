@@ -11,7 +11,6 @@ all_the_parameters_string="$@"
 declare -a working_array=()
 declare -a validated_files_array=()
 
-
 #########################
 # FUNCTION DECLARATIONS:
 #########################
@@ -33,6 +32,8 @@ function check_all_program_preconditions() {
 function verify_program_args() {
     local all_the_parameters_string="$1"
 	[ -z "$all_the_parameters_string" ] && return 1
+    [ -n "$all_the_parameters_string" ] && [[ "$all_the_parameters_string" =~ ^[[:blank:]]+$ ]] && return 1
+    [ -n "$all_the_parameters_string" ] && [[ ! $all_the_parameters_string =~ ^[A-Za-z0-9\.\/_\-]+$ ]] && return 1
 	[ -n "$all_the_parameters_string" ] && [ "$all_the_parameters_string" == 'help' ] && return 1
 	[ -n "$all_the_parameters_string" ] && return 0
 }
@@ -47,6 +48,9 @@ GnuPG encrypt one or more FILE(s).
 FILE can be either the basename or the absolute path to the file.
 Simple file basename parameters are assumed to be
 in the current working directory.
+
+File globbing and expansion is not available, unfortunately.
+Only valid filename characters are allowed in filenames.
 
 Valid values for encryption profiles:
 encryptionSystem    public_key|symmetric_key
