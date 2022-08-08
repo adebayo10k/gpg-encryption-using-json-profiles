@@ -7,12 +7,7 @@
 #########################
 program_title="gpg file encrypter"
 original_author="damola adebayo"
-#declare -i max_expected_no_of_program_parameters=99 # arbitrary for now
-#declare -i min_expected_no_of_program_parameters=1
-#declare -ir actual_no_of_program_parameters=$#
 all_the_parameters_string="$@"
-declare -a incoming_array=( $@ )
-#no_of_program_parameters=$#
 declare -a working_array=()
 declare -a validated_files_array=()
 

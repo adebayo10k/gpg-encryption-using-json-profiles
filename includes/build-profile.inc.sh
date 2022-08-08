@@ -12,7 +12,7 @@ chosen_profile_id=
 
 function import_file_encryption_configuration () 
 {
-	#echo "config_file_fullpath set to $config_file_fullpath"
+    local config_file_fullpath="$1"
 
 	# NOTES ON THE jq PROGRAM:
 	#==================  
@@ -94,7 +94,9 @@ function get_user_profile_choice() {
 ##########################################################
 # use the  chosen_profile_id to assign all profile property values to variables for the gpg encryption command
 function assign_profile_values_to_variables() {
-    local id="$chosen_profile_id"	
+    local chosen_profile_id="$1"
+    #local id="$chosen_profile_id"
+
     # so now we have the 'target' profile id, we just need jq filters
     # to get each property value of the object where :
     # profileID == chosen_profile_id
@@ -142,10 +144,7 @@ function assign_profile_values_to_variables() {
     encryption_system="$encryption_system_string"
     output_file_format="$output_file_format_string"
     sender_uid="$sender_uid_string"
-    #OIFS=$IFS; IFS='|'
-    #recipient_uid_list=( $recipient_uid_list_string )
-    #IFS=$OIFS
-	recipient_uid_list="$recipient_uid_list_string"
+	recipient_uid_list="$recipient_uid_list_string" # IFS is |
 	
 }
 

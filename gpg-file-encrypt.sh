@@ -76,14 +76,14 @@ function main() {
 
     # CALLS TO FUNCTIONS DECLARED IN includes/gpg-encrypt-profile-build.inc.sh
     #==========================
-	import_file_encryption_configuration
+	import_file_encryption_configuration "$config_file_fullpath"
     
     validate_output_format "$output_file_format"    
     validate_encryption_system "$encryption_system"    
     test_uid_keys "$sender_uid" "$recipient_uid_list"
 	create_generic_command_string "$output_file_format" "$encryption_system"
-    gpg_encrypt_files
-    shred_plaintext_files	
+    gpg_encrypt_files "${validated_files_array[@]}"
+    shred_plaintext_files "${validated_files_array[@]}"
 } ## end main
 
 
@@ -202,6 +202,7 @@ function create_generic_symmetric_key_encryption_command_string() {
 # from here on, we'll have to go though the whole \
 # encrypt-verify-delete process for each file, one at a time.
 function gpg_encrypt_files() {
+    local validated_files_array=( "$@" )
     for valid_path in "${validated_files_array[@]}"
     do
         create_file_specific_encryption_command "$valid_path"
@@ -262,11 +263,12 @@ function execute_file_specific_encryption_command() {
 ##############################
 # best practice once encrypted versions exits: remove the plaintext versions!
 function shred_plaintext_files() {
+    local validated_files_array=( "$@" )
 	echo -e "Original plaintext files:" && echo
 	# list the plaintext files:
 	for valid_path in "${validated_files_array[@]}"
 	do
-		echo "${valid_path}"	
+		echo -e "${valid_path}"	
 	done
 
     echo && echo    
