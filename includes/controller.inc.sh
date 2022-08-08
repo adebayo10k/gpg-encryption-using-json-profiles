@@ -24,7 +24,8 @@ function get_user_response() {
 	response_list=( $responses_string )
 
 	user_response_num=''
-	PS3="$question_string : "
+    PS3="> "
+    echo "$question_string : " && echo
 	select response in ${response_list[@]}
 	do
 		# type error case

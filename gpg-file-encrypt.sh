@@ -238,7 +238,7 @@ function check_file_specific_encryption_command() {
     echo && echo -e "${BLUE}===specific encryption command string===${NC}" 
 	echo && echo -e "$file_specific_command" && echo    
     # get user decision whether command is good.
-    question_string='Does that command look good? OK to encrypt? Choose an option'
+    question_string='Does that command look good? Encrypt the file? Choose an option'
     responses_string='Yes, looks good. Encrypt it.|No, Quit the Program'
     get_user_response "$question_string" "$responses_string"
     # 1: yes, 2: no
@@ -271,7 +271,7 @@ function shred_plaintext_files() {
 
     echo && echo    
     # get user decision whether to shred original plaintext files.
-    question_string='OK to Shred the plaintext files? (Best practice). Choose an option'
+    question_string='Shred the plaintext files? (Best practice). Choose an option'
     responses_string='Yes, shred them all.|No, Keep them and Quit the Program'
     get_user_response "$question_string" "$responses_string"
     # 1: yes, 2: no
