@@ -33,7 +33,7 @@ function verify_program_args() {
     local all_the_parameters_string="$1"
 	[ -z "$all_the_parameters_string" ] && return 1
     [ -n "$all_the_parameters_string" ] && [[ "$all_the_parameters_string" =~ ^[[:blank:]]+$ ]] && return 1
-    [ -n "$all_the_parameters_string" ] && [[ ! $all_the_parameters_string =~ ^[A-Za-z0-9\.\/_\-]+$ ]] && return 1
+    [ -n "$all_the_parameters_string" ] && [[ ! $all_the_parameters_string =~ ^[A-Za-z0-9\ \.\/_\-]+$ ]] && return 1
 	[ -n "$all_the_parameters_string" ] && [ "$all_the_parameters_string" == 'help' ] && return 1
 	[ -n "$all_the_parameters_string" ] && return 0
 }
