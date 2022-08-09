@@ -170,9 +170,11 @@ gpg-file-encrypt.sh astral0 astral1
 
 
 ```
+Which JSON Profile to use for the encryption? Choose an option :
+
 1) local message encryption	 3) work team roles
 2) project keyfiles dev	 4) project UML diagram images
-Which JSON Profile to use for the encryption? Choose an option : 1
+> 1
 
 You Selected : local message encryption
 
@@ -187,9 +189,11 @@ File to encrypt : ./astral0
 
 gpg --armor --output ./astral0.ENCRYPTED.asc --local-user damola@host0.org --recipient damola@host0.org --recipient damola@host1.org --encrypt ./astral0
 
+Does that command look good? OK to encrypt? Choose an option :
+
 1) Yes, looks good. Encrypt it.
 2) No, Quit the Program
-Does that command look good? OK to encrypt? Choose an option : 1
+> 1
 
 You Selected : Yes, looks good. Encrypt it.
 
@@ -206,9 +210,11 @@ File to encrypt : ./astral1
 
 gpg --armor --output ./astral1.ENCRYPTED.asc --local-user damola@host0.org --recipient damola@host0.org --recipient damola@host1.org --encrypt ./astral1
 
+Does that command look good? OK to encrypt? Choose an option :
+
 1) Yes, looks good. Encrypt it.
 2) No, Quit the Program
-Does that command look good? OK to encrypt? Choose an option : 1
+> 1
 
 You Selected : Yes, looks good. Encrypt it.
 
@@ -223,10 +229,11 @@ Original plaintext files:
 ./astral0
 ./astral1
 
+Shred the plaintext files? (Best practice). Choose an option :
 
 1) Yes, shred them all.
 2) No, Keep them and Quit the Program
-OK to Shred the plaintext files? (Best practice). Choose an option : 1
+> 1
 
 You Selected : Yes, shred them all.
 
@@ -269,6 +276,13 @@ ls | grep astral
 astral0.ENCRYPTED.asc
 astral1.ENCRYPTED.asc
 astral2
+```
+
+```
+file astral*
+astral0.ENCRYPTED.asc: PGP message Public-Key Encrypted Session Key (old)
+astral1.ENCRYPTED.asc: PGP message Public-Key Encrypted Session Key (old)
+astral2:               ReStructuredText file, ASCII text, with very long lines
 ```
 
 The program is highly opinionated with regard to the structure of filenames of encrypted messages.
